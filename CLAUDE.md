@@ -73,6 +73,6 @@ python scripts/validate_card.py --all             # 验证所有正式卡
 ## 注意事项
 
 - 蒸馏时**以源材料的术语和概念为准**；源中未必有 Claude Code 特有术语（如 hooks / constitution），在 `Apply to Agent Development` 中映射到编程智能体术语即可，但每个选项必须有源支撑——书中无支撑的候选**必须替换**，不可凭空编造。
-- Git：本仓库已是 git 仓库，远端 `nine710/agent-kb`（Public），用户已授权自动 commit。**push 需 PAT 对 `agent-kb` 有 `Contents: write` 权限**——当前 fine-grained PAT（`GITHUB_PAT_TOKEN`）尚未覆盖此新建仓库，push 会 403；修复前本地 commit 正常、推送阻塞。GitHub 直连被墙，git/HTTP 操作走 Clash 代理 `127.0.0.1:7897`（已写入 Claude Code settings.json `env`）。
+- Git：本仓库是 git 仓库，远端 `nine710/agent-kb`（Public，SSH remote `git@github.com:nine710/agent-kb.git`），用户已授权自动 commit + push。**推送走 SSH 密钥认证（不经 PAT）+ Clash 代理**（HTTPS/PAT 推送会 403——fine-grained `GITHUB_PAT_TOKEN` 未覆盖此仓库的写权限；SSH 密钥已注册且可用）：`GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand='connect -H 127.0.0.1:7897 %h %p'" git push`。GitHub 直连被墙，git/HTTP 操作走 Clash 代理 `127.0.0.1:7897`（已写入 Claude Code settings.json `env`）。
 - v0 不做的事：消费侧 design-time skill（用户自行构建）、个人经验入卡（永久不做）。
-- Phase 1（骨架）与 v0 蒸馏已在本地完成：`SCHEMA.md`、`scripts/validate_card.py`、`templates/card.md`、`raw/sources.md`、`README.md`、`.gitignore` 均已就位；`cards/` 含 2 张正式卡（`constraint-placement`、`context-loading-strategy`，`validate_card.py --all` 双 PASS）；`raw/sources.md` 含 1 个 raw-only 标注。**仅剩 push 待 PAT 写权限修复**（见上一条）。
+- Phase 1（骨架）与 v0 蒸馏**已全部完成并推送至 GitHub**：`SCHEMA.md`、`scripts/validate_card.py`、`templates/card.md`、`raw/sources.md`、`README.md`、`.gitignore` 均已就位；`cards/` 含 2 张正式卡（`constraint-placement`、`context-loading-strategy`，`validate_card.py --all` 双 PASS）；`raw/sources.md` 含 1 个 raw-only 标注。
