@@ -1,0 +1,19 @@
+# fair-use 摘录不进公开仓库
+raw/excerpts/
+
+# 未过门的草稿
+drafts/
+
+# 源材料仓库（外部，已克隆到本地用于蒸馏，按 Task 8 精神不纳入本仓库）
+ai-agent-book/
+
+# codegraph 索引
+.codegraph/
+
+# 参考用 PDF（不作为蒸馏主源）
+*.pdf
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.swp
