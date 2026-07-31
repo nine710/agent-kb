@@ -1,0 +1,23 @@
+# 蒸馏原材料包：每个来源（src-NNN）自含原始文件与 fair-use 摘录，不进公开仓库
+raw/src-*/
+
+# 未过门的草稿
+drafts/
+
+# codegraph 索引
+.codegraph/
+
+# 内部规划/设计文档（本地用，不公开）
+planning/
+
+# Agent 指引文件（本地用，不公开）
+CLAUDE.md
+AGENTS.md
+
+# 本 .gitignore 本身不上传到公开仓库
+.gitignore
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.swp
