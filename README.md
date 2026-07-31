@@ -16,6 +16,10 @@ AI Agent 设计知识库：策展决策卡（curated decision cards），用于�
 
 详见 `SCHEMA.md`。空白模板见 `templates/card.md`。
 
+## 本地蒸馏材料
+
+`raw/` 是蒸馏输入层。`raw/sources.md` 是公开的来源索引；每个实际来源的原始文件、配套项目和 fair-use 摘录都收纳在同一个本地材料包中：`raw/src-NNN-<source-slug>/source/` 与 `raw/src-NNN-<source-slug>/excerpts/`。材料包由 `.gitignore` 排除，不进入公开仓库。
+
 ## 验证
 
 ```bash

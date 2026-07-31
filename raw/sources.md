@@ -16,7 +16,9 @@
 | URL | https://github.com/bojieli/ai-agent-book |
 | 许可 | Apache License 2.0 |
 | 格式 | markdown 源码（`book/chapter*.md`） |
-| 本地路径 | `ai-agent-book/book/` |
+| 本地材料包 | `raw/src-001-ai-agent-book/`（gitignored） |
+| 主蒸馏路径 | `raw/src-001-ai-agent-book/source/ai-agent-book/book/` |
+| 辅助材料 | `raw/src-001-ai-agent-book/source/AI-Agents-in-Depth-zh-CN (1).pdf`（仅核对，不作主蒸馏源） |
 | 入选理由 | 10 章覆盖 Agent 全链路（harness/上下文/记忆/工具/Coding Agent/评估/训练/进化/多模态/多 Agent），94 个配套实验，核心公式 Agent = LLM + 上下文 + 工具 |
 
 #### 章节-候选 problem 映射

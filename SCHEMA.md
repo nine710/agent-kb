@@ -43,13 +43,15 @@
 | 4 | 源可追溯 | 每条内容可回溯到 sources |
 | 5 | problem 可复用 | 可反复遇到的设计问题 |
 
-## raw/ 摘录规范
+## raw/ 原材料与摘录规范
 
 - `raw/sources.md`：公开，必读源索引
-- `raw/excerpts/`：gitignored，短摘录（fair-use）
+- `raw/src-NNN-<source-slug>/`：每个来源的本地材料包，由 `.gitignore` 排除
+- `raw/src-NNN-<source-slug>/source/`：不修改的上游原始材料；项目、配套文件、PDF 或文档属于同一来源时放在同一个材料包中
+- `raw/src-NNN-<source-slug>/excerpts/`：该来源的 fair-use 短摘录和定位笔记
 - 摘录长度上限：单条不超过 500 字，单源摘录总计不超过 2000 字
 - 每条摘录必须标注精确来源定位（markdown 章节号 / 小节号）
-- 不存全文、不存整书 PDF/EPUB
+- `excerpts/` 不复制来源全文、整书 PDF 或 EPUB；原始材料可原样保留在同一材料包的 `source/` 中，但材料包不进入公开仓库
 
 ## 源材料格式优先级
 
