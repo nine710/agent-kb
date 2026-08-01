@@ -21,16 +21,22 @@
 | 辅助材料 | `raw/src-001-ai-agent-book/source/AI-Agents-in-Depth-zh-CN (1).pdf`（仅核对，不作主蒸馏源） |
 | 入选理由 | 10 章覆盖 Agent 全链路（harness/上下文/记忆/工具/Coding Agent/评估/训练/进化/多模态/多 Agent），94 个配套实验，核心公式 Agent = LLM + 上下文 + 工具 |
 
-#### 章节-候选 problem 映射
+#### 章节-设计责任证据覆盖
 
-| 章 | markdown 文件 | 主题 | 候选 problem |
-|----|--------------|------|-------------|
-| 1 | `chapter1.md` | Agent 基础 + Harness 工程 | 约束放哪 / Agent 公式选型 |
-| 2 | `chapter2.md` | 上下文工程 | 上下文加载策略 / skills 组织 |
-| 3 | `chapter3.md` | 用户记忆和知识库 | 记忆形态 / RAG vs 结构化索引 |
-| 4 | `chapter4.md` | 工具 | MCP 协议选择 / 工具发现策略 |
-| 5 | `chapter5.md` | Coding Agent | 代码生成范围控制 |
-| 6 | `chapter6.md` | Agent 评估 | 评估环境选择 / 指标设计 |
+章节只提供证据，不能直接决定卡片或 problem。正式卡从 `DECISION-MAP.md` 的一级开发责任与跨章节证据中发现。
+
+| 章 | markdown 文件 | 主要证据覆盖的设计责任 |
+|----|--------------|------------------------|
+| 1 | `chapter1.md` | 安全与人工控制；目标与任务执行 |
+| 2 | `chapter2.md` | 上下文与状态；工具与行动 |
+| 3 | `chapter3.md` | 知识与记忆；上下文与状态 |
+| 4 | `chapter4.md` | 工具与行动；目标与任务执行 |
+| 5 | `chapter5.md` | 上下文与状态 |
+| 6 | `chapter6.md` | 评估与可观测性 |
+| 7 | `chapter7.md` | 当前范围外（模型后训练） |
+| 8 | `chapter8.md` | 持续改进与协作 |
+| 9 | `chapter9.md` | 当前范围外（多模态与机器人） |
+| 10 | `chapter10.md` | 持续改进与协作 |
 
 #### 全书覆盖盘点
 
@@ -47,7 +53,7 @@
 | 9 | completed | 多模态、GUI 与机器人控制超出当前编程 Agent 主域 |
 | 10 | completed | 发布 `multi-agent-coordination` |
 
-`src-001` 的完整本地证据台账、候选队列、进度和蒸馏报告位于 `raw/src-001-ai-agent-book/derived/`，由 `.gitignore` 排除。
+`src-001` 的完整本地证据台账、决策地图对齐、地图变更提议、既有卡重审、候选队列、进度和蒸馏报告位于 `raw/src-001-ai-agent-book/derived/`，由 `.gitignore` 排除。
 
 ### src-002（待补充）
 
