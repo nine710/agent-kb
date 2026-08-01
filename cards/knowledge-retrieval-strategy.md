@@ -1,6 +1,9 @@
 ---
 id: knowledge-retrieval-strategy
-card_contract: decision-card-v0
+card_contract: development-agent-v1
+consumer: development-agent
+decision_scope: knowledge-retrieval
+option_relationship: composable-by-information-type
 problem: Agent 获取外部知识时应采用稠密检索、稀疏检索、混合检索，还是结构化索引？
 tags: [rag, retrieval, knowledge-base, memory]
 when_to_use: 为 Agent 的文档、代码、规范或长期知识设计检索和组织方式，需要平衡语义召回、精确匹配、可解释性和治理时。
@@ -43,6 +46,38 @@ source_ids: [src-001]
 - 两类查询都重要且漏检代价高时采用 C，并对融合结果建立评估集，而不是假设混合一定更好。
 - 代码库、设计规范或长期知识存在明确组件关系和目录层级时采用 D，必要时让检索先走结构再读取文本。
 - 无论采用何种检索，都治理时效和冲突；检索质量是知识型 Agent 能力上限的一部分。
+
+## Development Agent Procedure
+
+### Trigger
+
+在 Agent 需要从文档、代码、规范或长期知识中取回外部信息，且必须决定如何同时处理自然语言意图、精确标识符、目录关系或知识治理时，读取本卡。
+
+### Decision Inputs
+
+为查询集合记录自然语言改写比例、精确符号/路径/错误码比例、知识中的实体和层级关系、召回错误的影响、索引更新频率、以及可用于评估的已知答案和来源定位。
+
+### Option Relationship
+
+A、B、C 是查询信号层的不同组合：C 组合 A 的语义召回与 B 的精确匹配；D 是独立的知识组织层，可与 A、B 或 C 共同使用，让检索先按结构定位再读取文本。不要把 C 当作无条件优于 A 或 B 的默认选项。
+
+### Selection Rules
+
+- 查询以同义表达和概念关系为主时选择 A，并以可独立理解的知识单元分块。
+- 查询常含 API、文件路径、配置键、错误码或罕见名称时选择 B。
+- 两类信号都关键且漏检代价高时选择 C，并为融合/重排规则建立评测。
+- 组件所有权、依赖、目录或时间关系本身影响答案时增加 D；结构缺失或过期时不得把其结果当作唯一事实。
+
+### Required Artifacts
+
+交付查询分类与样本集、知识分块和来源定位规范、选用的检索信号及融合/重排规则、结构化索引 schema（如适用）、以及时效、冲突和删除治理规则。每个检索结果必须能回链到原始知识位置。
+
+### Verification
+
+- 用语义改写、精确标识符和结构关系三组查询分别测量召回与错误命中。
+- 对混合检索比较融合前后的结果；没有改进证据时不保留额外复杂度。
+- 用跨主题 chunk、过期文档和冲突条目做反例，确认结果保留来源、版本和冲突状态。
+- 检查 Agent 不会仅凭相似度分数忽略精确符号或结构约束。
 
 ## Anti-Patterns
 

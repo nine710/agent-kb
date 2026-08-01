@@ -1,6 +1,9 @@
 ---
 id: agent-evaluation-environment
-card_contract: decision-card-v0
+card_contract: development-agent-v1
+consumer: development-agent
+decision_scope: evaluation
+option_relationship: composable
 problem: Agent 应在工具调用环境、人机交互环境还是仿真环境中评估？
 tags: [evaluation, benchmarks, simulation, observability]
 when_to_use: 需要为 Agent 设计可重复的能力验证环境，并决定评价重点是工具结果、交互质量还是逼真世界动态时。
@@ -38,6 +41,38 @@ source_ids: [src-001]
 - 任务受连续状态、外部动态或长程策略影响时使用 C；先声明需要的保真度，再决定模拟范围。
 - 评估数据集应覆盖任务难度、分布、可验证性和质量控制；环境选择不能替代指标设计。
 - 把评估结果接入可观测性和持续迭代，避免只把 benchmark 分数当作最终结论。
+
+## Development Agent Procedure
+
+### Trigger
+
+在开发 Agent 的新能力、工具接口、用户协作流程或长程策略后，需要定义可重复的验收环境和可验证成功标准时，读取本卡。
+
+### Decision Inputs
+
+记录待验证的任务结果是否可由工具状态客观断言、是否依赖多轮用户澄清、是否受连续世界状态或罕见情景影响、所需保真度、可接受的运行成本，以及任务分布、难度和失败代价。
+
+### Option Relationship
+
+A、B、C 可按风险和任务类型组合，而不是互斥基准：A 覆盖确定性工具结果，B 覆盖用户交互分支，C 覆盖状态演化和长程策略。它们共享任务、环境、Agent 与评估器四个基本组成，但不能用一种环境的得分替代另一种风险的验证。
+
+### Selection Rules
+
+- 工具选择、参数和外部状态是主要风险时选择 A，并把期望状态写成断言。
+- 澄清、协商、引导或用户分支决定成败时增加 B，并明确模拟用户行为和评价标准。
+- 策略依赖时间、随机性、连续状态或罕见风险时增加 C；先定义需要复现的现实属性，再设定仿真保真度。
+- 无论选哪种环境，都以任务分布、可验证性和质量控制设计数据集，而不是只收集平均分。
+
+### Required Artifacts
+
+交付评估矩阵，映射能力风险到 A/B/C 环境；每个任务的初始状态、动作接口或用户脚本、预期结果、评估器和失败归因规则；仿真时还要交付保真度目标、随机化范围和可观测事件记录。
+
+### Verification
+
+- 在 A 中断言工具调用、参数和最终状态；不得只评最终自然语言回复。
+- 在 B 中运行分支化用户脚本，检查澄清与终止行为，而非单一理想脚本。
+- 在 C 中改变关键随机条件，确认结论不只适用于单一理想轨迹。
+- 分析按任务难度和失败模式分组的结果，检查环境覆盖、可验证性和结论边界。
 
 ## Anti-Patterns
 
