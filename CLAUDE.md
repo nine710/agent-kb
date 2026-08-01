@@ -29,7 +29,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | 目录/文件 | 职责 | 公开 |
 |----------|------|------|
-| `cards/*.md` | 通过全链路门禁的正式决策卡（`status: active`） | ✅ |
+| `cards/*.md` | 正式决策卡（`status: active`）；`development-agent-v1` 可直接指导编程 Agent，`decision-card-v0` 为迁移期知识卡 | ✅ |
+| `eval/development-agent/` | v1 卡的典型、边界、反模式消费验收任务与审查记录 | ✅ |
 | `templates/card.md` | 空白卡片模板 | ✅ |
 | `SCHEMA.md` | 卡片 schema + 对抗审查清单 + 摘录规范 | ✅ |
 | `raw/sources.md` | 必读源索引（源 ID + 章节→问题映射 + raw-only 问题标注） | ✅ |
@@ -65,6 +66,8 @@ raw/
   → 每个候选建立草稿 + evidence sidecar，并记录生命周期状态
   → Agent 对抗审查、来源预检和 card schema 验证
   → 仅 published 候选进入 cards/；其余状态永久留存并记录原因
+
+对 `development-agent-v1` 候选，在发布前还必须执行：定义 consumer / decision scope / option relationship → 写 Development Agent Procedure 六项 → 将 Procedure 绑定到证据 → 建立三项公开消费任务 → 由开发 Agent 实际回答、人工或 Agent 审查 rubric。仅创建任务文件不构成验收通过。
 ```
 
 人工只选择来源；Agent 自主发现问题、草拟、审查和本地发布。Skill 不执行 Git 操作；项目开发流程单独负责提交和推送。
@@ -83,7 +86,7 @@ python scripts/validate_card.py cards/<card>.md   # 验证单张卡
 python scripts/validate_card.py --all             # 验证所有正式卡
 ```
 
-验证器包括 `scripts/validate_card.py` 与 `scripts/validate_distillation.py`。前者检查正式卡结构；后者检查来源包、候选与档案一对一关系、五种生命周期状态、证据 sidecar、进度和报告。每张卡进 `cards/` 前必须通过二者以及 Skill 的语义审查；草稿不会因发布或拒绝而删除。
+验证器包括 `scripts/validate_card.py` 与 `scripts/validate_distillation.py`。前者检查正式卡结构和契约；后者检查来源包、候选与档案一对一关系、五种生命周期状态、证据 sidecar、进度、v1 Procedure 绑定和三项消费验收。`decision-card-v0` 是临时迁移契约；仅 `development-agent-v1` 可宣称为 Codex / Claude Code 的可执行开发参考。草稿不会因发布或拒绝而删除。
 
 ## 源材料工作流
 

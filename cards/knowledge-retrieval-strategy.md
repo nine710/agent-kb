@@ -1,5 +1,6 @@
 ---
 id: knowledge-retrieval-strategy
+card_contract: decision-card-v0
 problem: Agent 获取外部知识时应采用稠密检索、稀疏检索、混合检索，还是结构化索引？
 tags: [rag, retrieval, knowledge-base, memory]
 when_to_use: 为 Agent 的文档、代码、规范或长期知识设计检索和组织方式，需要平衡语义召回、精确匹配、可解释性和治理时。

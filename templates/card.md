@@ -1,17 +1,16 @@
 ---
 id: <kebab-case-slug>
-source_id: src-001
-candidate_id: CAND-001
+card_contract: development-agent-v1
+consumer: development-agent
+decision_scope: agent-runtime-architecture
+option_relationship: exclusive
 problem: <一句话设计决策问题>
 tags: [<主题标签>]
 when_to_use: <什么场景下会遇到>
 when_not: <什么场景不适用>
-status: draft
+status: active
 source_ids: [src-001]
-published_card: cards/<kebab-case-slug>.md
 ---
-
-<!-- Local archive drafts require a sibling <candidate-id>-<slug>.evidence.md sidecar. -->
 
 ## Options
 
@@ -38,6 +37,32 @@ published_card: cards/<kebab-case-slug>.md
 ## Apply to Agent Development
 
 <外部可推导的通用决策规则。禁止个人项目经历。>
+
+## Development Agent Procedure
+
+### Trigger
+
+<何种开发 Agent 任务需要读取本卡>
+
+### Decision Inputs
+
+<选择前必须调查的事实和约束>
+
+### Option Relationship
+
+<选项是互斥、可组合、分层、顺序还是按信息类型组合>
+
+### Selection Rules
+
+<根据输入选择选项或组合的条件>
+
+### Required Artifacts
+
+<必须产出的架构、配置、接口、测试或设计记录>
+
+### Verification
+
+<验证选择有效并防止风险的动作>
 
 ## Anti-Patterns
 

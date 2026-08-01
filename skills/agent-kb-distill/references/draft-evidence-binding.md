@@ -33,3 +33,17 @@ The sidecar maps each Option, Tradeoff row, application rule, and Anti-Pattern t
 ```
 
 Options require `supported` claims. Inferred claims may support derived rules only when their `inference_chain` is complete. A sidecar is required for every lifecycle status but is not copied into `cards/`. `published` drafts must point to an active card; all other statuses must not set `published_card`.
+
+For `development-agent-v1`, the sidecar must additionally bind all six labels:
+
+```markdown
+- Procedure Trigger: CLM-001
+- Procedure Decision Inputs: CLM-002
+- Procedure Option Relationship: CLM-003
+- Procedure Selection Rules: CLM-004
+- Procedure Required Artifacts: CLM-005
+- Procedure Verification: CLM-006
+```
+
+Use supported claims for direct source facts. A development-Agent action derived
+from those facts uses an inferred claim with a complete `inference_chain`.

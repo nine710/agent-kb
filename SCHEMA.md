@@ -15,6 +15,10 @@
 | `when_not` | string | 是 | 什么场景不适用 |
 | `status` | string | 是 | `draft`（草稿）/ `active`（正式）/ `deprecated`（废弃） |
 | `source_ids` | string[] | 是 | 关联 `raw/sources.md` 中的源 ID |
+| `card_contract` | string | 是 | `decision-card-v0`（迁移期）或 `development-agent-v1`（开发 Agent 可执行卡） |
+| `consumer` | string | v1 必填 | 固定为 `development-agent` |
+| `decision_scope` | string | v1 必填 | `agent-runtime-architecture` / `knowledge-retrieval` / `evaluation` / `continuous-improvement` / `multi-agent-topology` |
+| `option_relationship` | string | v1 必填 | `exclusive` / `composable` / `layered` / `sequential` / `composable-by-information-type` |
 
 ## 正文章节
 
@@ -23,6 +27,7 @@
 | **Options** | 是 | ≥3 个真分歧选项；每个选项有名称和描述 |
 | **Tradeoffs** | 是 | 每个选项的优势与代价 |
 | **Apply to Agent Development** | 是 | 外部可推导的通用决策规则；禁止个人项目经验 |
+| **Development Agent Procedure** | v1 必填 | Trigger、Decision Inputs、Option Relationship、Selection Rules、Required Artifacts、Verification 六项齐全且非空 |
 | **Anti-Patterns** | 是 | 源中或逻辑可证的反模式；禁止个人经验 |
 | **Sources** | 是 | 每条含源 ID + 源原生稳定定位（Markdown 标题优先；其他格式用可复核页码、锚点或文件位置） |
 
@@ -32,6 +37,24 @@
 2. **零个人经验**：所有字段不含个人项目经历（项目名、踩坑记录等）
 3. **源可追溯**：每个选项、tradeoff、应用规则都能回溯到 sources
 4. **problem 可复用**：是设计问题模板，不是文章读后感
+
+## 开发 Agent 消费契约
+
+- `decision-card-v0` 是迁移期卡片：保留有效的设计知识，但尚未声明可直接指导开发 Agent 完成设计交付。
+- `development-agent-v1` 是供 Codex、Claude Code 等编程 Agent 使用的执行型决策卡。它必须具有 consumer 元数据、选项关系和完整的 Development Agent Procedure。
+- `option_relationship` 不允许默认省略。它说明同一张卡中的选项是互斥、可组合、分层、顺序执行，或按信息类型组合。
+- v1 卡的 Procedure 必须使 Agent 能识别触发、收集输入、选择方案、交付工件并验证设计；它不替代 Options 或 Tradeoffs。
+
+### Development Agent Procedure
+
+| 小节 | Agent 必须获得的内容 |
+|---|---|
+| Trigger | 何种项目任务或设计信号要求读取本卡 |
+| Decision Inputs | 选择前必须调查的事实与约束 |
+| Option Relationship | 选项之间的互斥、组合、层级或顺序关系 |
+| Selection Rules | 根据输入选择某个选项或组合的条件 |
+| Required Artifacts | 必须产出的架构、配置、接口、测试或设计记录 |
+| Verification | 检验选择有效并防止相应风险的动作 |
 
 ## 对抗审查清单（草稿进 cards/ 前必检）
 

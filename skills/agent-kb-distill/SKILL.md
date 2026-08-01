@@ -23,14 +23,15 @@ Use this Skill only inside an `agent-kb` repository. Read `SCHEMA.md`, `raw/sour
 4. Read all inventoried, in-scope units. Write one claim per row in `derived/evidence-ledger.md` using [the ledger schema](references/evidence-ledger-schema.md).
 5. Create `derived/candidate-problems.md` using [the candidate schema](references/candidate-problem-schema.md). Compare every candidate against existing cards semantically.
 6. For every candidate, create `drafts/<source_id>/<candidate-id>-<slug>.md` and its matching `.evidence.md` sidecar using [draft binding rules](references/draft-evidence-binding.md). Set the lifecycle status to `draft` while analysis is incomplete; use `raw-only`, `out-of-scope`, or `rejected` with a decision reason when a candidate is withheld.
-7. Apply [publication gates](references/publication-gates.md). Only a `published` draft may produce or update a file in `cards/`; set its `published_card` link after the active card exists. Run both validation commands before treating the source as complete:
+7. For a candidate targeting `development-agent-v1`, perform the Development-Agent adaptation stage: define consumer, decision scope, option relationship, all six Procedure fields, and evidence bindings. Create one public `typical`, `boundary`, and `anti-pattern` evaluation task under `eval/development-agent/<card-id>/`. A reviewer must record a real development-Agent answer against every task rubric before `review_status: pass` is valid.
+8. Apply [publication gates](references/publication-gates.md). Only a `published` draft may produce or update a file in `cards/`; set its `published_card` link after the active card exists. Run both validation commands before treating the source as complete:
 
    ```text
    python scripts/validate_distillation.py <source-package> --drafts drafts --cards cards
    python scripts/validate_card.py --all
    ```
 
-8. Write `derived/distillation-report.md`. Include coverage, published cards, all withheld candidates, archive paths, conflicts, reliability issues, and source suggestions.
+9. Write `derived/distillation-report.md`. Include coverage, published cards, consumer contract/readiness, all withheld candidates, archive paths, conflicts, reliability issues, and source suggestions.
 
 ## Archive lifecycle
 
@@ -49,6 +50,25 @@ Every candidate has exactly one draft and one evidence sidecar under
 The validator checks the candidate/archive one-to-one relationship, sidecar
 bindings, lifecycle-specific fields, and active-card links. Failed validation
 retains all artifacts and reports the source, candidate, file, and rule.
+
+## Development-Agent adaptation
+
+`decision-card-v0` is a valid transitional decision card. A
+`development-agent-v1` card is a direct execution reference for a programming
+Agent and must include:
+
+1. `consumer: development-agent`, a valid decision scope, and an explicit
+   option relationship;
+2. Development Agent Procedure fields: Trigger, Decision Inputs, Option
+   Relationship, Selection Rules, Required Artifacts, and Verification;
+3. six matching `Procedure ...` labels in the local evidence sidecar;
+4. three reviewed public tasks under `eval/development-agent/<card-id>/`.
+
+Direct procedure facts require supported claims. An engineering action that is
+derived from source facts must bind to an inferred claim with a complete
+`inference_chain`; do not present it as a direct source conclusion. Do not mark
+a v1 task as passed merely because it exists: the Review Record must reflect a
+development Agent's actual answer and reviewer scoring.
 
 ## Resume
 

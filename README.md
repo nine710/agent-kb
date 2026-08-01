@@ -16,9 +16,13 @@ AI Agent 设计知识库：策展决策卡（curated decision cards），用于�
 
 详见 `SCHEMA.md`。空白模板见 `templates/card.md`。
 
+## 开发 Agent 消费
+
+`development-agent-v1` 卡片是供 Codex、Claude Code 等编程 Agent 在开发 Agent 项目时直接执行的设计参考。它除 Options 与 Tradeoffs 外，还包含 Trigger、Decision Inputs、Option Relationship、Selection Rules、Required Artifacts 和 Verification。每张 v1 卡在 `eval/development-agent/` 下有典型、边界和反模式三项公开任务；任务必须由开发 Agent 实际回答并经过 rubric 审查。`decision-card-v0` 是尚未完成该迁移的过渡卡，仍可提供来源可追溯的设计知识，但不宣称可直接执行。
+
 ## 蒸馏 Skill
 
-仓库内的 `skills/agent-kb-distill/` 是统一蒸馏入口。人工提供来源后，Skill 建立材料画像、证据台账和候选问题队列，并为每个候选在 `drafts/<source_id>/` 建立永久本地草稿与 evidence sidecar。只有同时通过语义门禁、`python scripts/validate_distillation.py <source-package> --drafts drafts --cards cards` 与 `python scripts/validate_card.py --all` 的候选才会以 `published` 状态进入 `cards/`；`raw-only`、`out-of-scope`、`rejected` 也会保留并记录原因。Skill 不执行 Git 操作。
+仓库内的 `skills/agent-kb-distill/` 是统一蒸馏入口。人工提供来源后，Skill 建立材料画像、证据台账和候选问题队列，并为每个候选在 `drafts/<source_id>/` 建立永久本地草稿与 evidence sidecar。目标为 `development-agent-v1` 的候选还必须完成开发 Agent 适配、Procedure 证据绑定和三项公开任务审查。只有同时通过语义门禁、`python scripts/validate_distillation.py <source-package> --drafts drafts --cards cards` 与 `python scripts/validate_card.py --all` 的候选才会以 `published` 状态进入 `cards/`；`raw-only`、`out-of-scope`、`rejected` 也会保留并记录原因。Skill 不执行 Git 操作。
 
 ## 本地蒸馏材料
 

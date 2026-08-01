@@ -1,5 +1,6 @@
 ---
 id: agent-evaluation-environment
+card_contract: decision-card-v0
 problem: Agent 应在工具调用环境、人机交互环境还是仿真环境中评估？
 tags: [evaluation, benchmarks, simulation, observability]
 when_to_use: 需要为 Agent 设计可重复的能力验证环境，并决定评价重点是工具结果、交互质量还是逼真世界动态时。

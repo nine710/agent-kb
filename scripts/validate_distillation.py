@@ -16,7 +16,7 @@ REQUIRED_DERIVED = (
     "distillation-report.md",
 )
 CLAIM_ID_RE = re.compile(r"\bCLM-\d+\b")
-KEY_VALUE_RE = re.compile(r"^(?:-\s*)?([a-z_]+):\s*(.+)$", re.MULTILINE)
+KEY_VALUE_RE = re.compile(r"^(?:-[ \t]*)?([a-z_]+):[ \t]*(.+)$", re.MULTILINE)
 
 
 def read_markdown_table(path):
@@ -41,6 +41,43 @@ def read_markdown_table(path):
 
 
 VALID_DRAFT_STATUSES = {"draft", "published", "raw-only", "out-of-scope", "rejected"}
+DEVELOPMENT_AGENT_CONTRACT = "development-agent-v1"
+REQUIRED_PROCEDURE_BINDINGS = {
+    "Procedure Trigger",
+    "Procedure Decision Inputs",
+    "Procedure Option Relationship",
+    "Procedure Selection Rules",
+    "Procedure Required Artifacts",
+    "Procedure Verification",
+}
+REQUIRED_TASK_SECTIONS = (
+    "## Project Background",
+    "## Development Goal",
+    "## Known Constraints",
+    "## Expected Trigger",
+    "## Acceptable Decision",
+    "## Required Artifacts",
+    "## Required Verification",
+    "## Failure Conditions",
+    "## Rubric",
+    "## Review Record",
+)
+REQUIRED_RUBRIC_IDS = {
+    "trigger-recognition",
+    "decision-inputs",
+    "option-relationship",
+    "selection",
+    "artifacts",
+    "verification",
+    "anti-pattern",
+}
+CRITICAL_RUBRIC_IDS = {
+    "trigger-recognition",
+    "option-relationship",
+    "selection",
+    "verification",
+}
+REQUIRED_DIFFICULTIES = {"typical", "boundary", "anti-pattern"}
 
 
 def draft_files(drafts_dir, source_id):
@@ -158,6 +195,88 @@ def validate_draft_lifecycle(draft, draft_metadata, candidate, cards_dir):
     return errors
 
 
+def markdown_section(text, heading):
+    match = re.search(
+        rf"^{re.escape(heading)}\s*$\n(.*?)(?=^## |\Z)",
+        text,
+        re.MULTILINE | re.DOTALL,
+    )
+    return match.group(1).strip() if match else ""
+
+
+def bullet_values(text):
+    values = {}
+    for line in text.splitlines():
+        match = re.match(r"^-\s+([a-z-]+):\s*(.+)$", line)
+        if match:
+            values[match.group(1)] = match.group(2).strip()
+    return values
+
+
+def validate_development_agent_evaluations(card_path, eval_root):
+    errors = []
+    card_path = Path(card_path)
+    task_dir = Path(eval_root) / card_path.stem
+    tasks = sorted(task_dir.glob("*.md")) if task_dir.is_dir() else []
+    if len(tasks) != 3:
+        return [f"{card_path.stem} requires exactly three evaluation tasks, found {len(tasks)}"]
+
+    difficulties = []
+    for task in tasks:
+        text = task.read_text(encoding="utf-8")
+        task_metadata = metadata(text)
+        if task_metadata.get("card_id") != card_path.stem:
+            errors.append(f"evaluation task card_id mismatch: {task.name}")
+        difficulty = task_metadata.get("difficulty", "")
+        difficulties.append(difficulty)
+        if task_metadata.get("review_status") != "pass":
+            errors.append(f"evaluation task must have review_status: pass: {task.name}")
+        if not task_metadata.get("task_id"):
+            errors.append(f"evaluation task missing task_id: {task.name}")
+        if not task_metadata.get("reviewer"):
+            errors.append(f"evaluation task missing reviewer: {task.name}")
+        if not task_metadata.get("reviewed_at"):
+            errors.append(f"evaluation task missing reviewed_at: {task.name}")
+        for heading in REQUIRED_TASK_SECTIONS:
+            if not markdown_section(text, heading):
+                errors.append(f"evaluation task missing or empty section {heading}: {task.name}")
+        if not markdown_section(text, "## Agent Response Summary"):
+            errors.append(f"evaluation task missing or empty Agent Response Summary: {task.name}")
+
+        rubric_ids = set(bullet_values(markdown_section(text, "## Rubric")))
+        missing_rubric_ids = REQUIRED_RUBRIC_IDS - rubric_ids
+        if missing_rubric_ids:
+            errors.append(
+                f"evaluation task missing rubric IDs {', '.join(sorted(missing_rubric_ids))}: {task.name}"
+            )
+        review = bullet_values(markdown_section(text, "## Review Record"))
+        missing_review_ids = REQUIRED_RUBRIC_IDS - set(review)
+        if missing_review_ids:
+            errors.append(
+                f"evaluation task missing review outcomes {', '.join(sorted(missing_review_ids))}: {task.name}"
+            )
+            continue
+        for rubric_id in REQUIRED_RUBRIC_IDS:
+            outcome = review[rubric_id]
+            if outcome not in {"pass", "partial", "fail"}:
+                errors.append(f"invalid review outcome for {rubric_id}: {task.name}")
+        for rubric_id in CRITICAL_RUBRIC_IDS:
+            if review.get(rubric_id) == "fail":
+                errors.append(f"critical rubric failure {rubric_id}: {task.name}")
+        partial_count = sum(
+            review.get(rubric_id) == "partial"
+            for rubric_id in REQUIRED_RUBRIC_IDS - CRITICAL_RUBRIC_IDS
+        )
+        if partial_count > 1:
+            errors.append(f"evaluation task has more than one non-critical partial: {task.name}")
+
+    if set(difficulties) != REQUIRED_DIFFICULTIES or len(set(difficulties)) != 3:
+        errors.append(
+            f"evaluation tasks must use unique difficulties: {', '.join(sorted(REQUIRED_DIFFICULTIES))}"
+        )
+    return errors
+
+
 def validate_package(package_root, drafts_dir, cards_dir):
     package_root = Path(package_root)
     drafts_dir = Path(drafts_dir)
@@ -249,6 +368,20 @@ def validate_package(package_root, drafts_dir, cards_dir):
                     errors.append(f"{sidecar.name} references low-reliability claim: {claim_id}")
                 if status == "inferred" and not claim.get("inference_chain", ""):
                     errors.append(f"inferred claim lacks inference_chain: {claim_id}")
+
+        if draft_metadata.get("status") == "published":
+            card = published_card_path(draft_metadata.get("published_card", ""), cards_dir)
+            if card and card.is_file():
+                card_metadata = metadata(card.read_text(encoding="utf-8"))
+                if card_metadata.get("card_contract") == DEVELOPMENT_AGENT_CONTRACT:
+                    binding_labels = {label for label, _ in bindings}
+                    missing_bindings = REQUIRED_PROCEDURE_BINDINGS - binding_labels
+                    if missing_bindings:
+                        errors.append(
+                            f"v1 draft missing Procedure bindings {', '.join(sorted(missing_bindings))}: {draft.name}"
+                        )
+                    eval_root = cards_dir.parent / "eval" / "development-agent"
+                    errors.extend(validate_development_agent_evaluations(card, eval_root))
 
     for candidate_id in candidates:
         matching = candidate_drafts.get(candidate_id, [])

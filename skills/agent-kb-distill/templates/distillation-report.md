@@ -21,6 +21,11 @@
 | Candidate | Draft | Status | Decision Reason |
 |---|---|---|---|
 
+## Consumer Readiness
+
+| Card | Contract | Evaluation Path | Review Outcome |
+|---|---|---|---|
+
 ## Withheld Candidates
 
 | Candidate | Status | Reason | Next Action |

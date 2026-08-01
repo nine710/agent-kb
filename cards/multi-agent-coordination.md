@@ -1,5 +1,6 @@
 ---
 id: multi-agent-coordination
+card_contract: decision-card-v0
 problem: 多 Agent 协作应采用管理者、对等协作还是去中心化移交拓扑？
 tags: [multi-agent, subagents, coordination, topology]
 when_to_use: 多个 Agent 需要分工、汇总、审查或移交任务，必须决定控制权和信息流由谁协调时。

@@ -80,6 +80,91 @@ def write_draft(
     )
 
 
+def write_v1_card(cards: Path):
+    (cards / "example.md").write_text(
+        "---\n"
+        "id: example\n"
+        "card_contract: development-agent-v1\n"
+        "consumer: development-agent\n"
+        "decision_scope: agent-runtime-architecture\n"
+        "option_relationship: exclusive\n"
+        "status: active\n"
+        "---\n\n"
+        "## Development Agent Procedure\n\n"
+        "### Trigger\nTrigger.\n\n"
+        "### Decision Inputs\nInputs.\n\n"
+        "### Option Relationship\nExclusive.\n\n"
+        "### Selection Rules\nRules.\n\n"
+        "### Required Artifacts\nArtifacts.\n\n"
+        "### Verification\nVerification.\n",
+        encoding="utf-8",
+    )
+def write_evaluation_task(
+    cards: Path,
+    difficulty: str,
+    critical_result="pass",
+    include_anti_pattern=True,
+    reviewer="test reviewer",
+    reviewed_at="2026-08-01",
+    response_summary="The Agent made a reviewed decision.",
+):
+    task_dir = cards.parent / "eval" / "development-agent" / "example"
+    task_dir.mkdir(parents=True, exist_ok=True)
+    rubric = [
+        "trigger-recognition",
+        "decision-inputs",
+        "option-relationship",
+        "selection",
+        "artifacts",
+        "verification",
+    ]
+    if include_anti_pattern:
+        rubric.append("anti-pattern")
+    rubric_body = "\n".join(f"- {item}: criterion" for item in rubric)
+    review_body = "\n".join(
+        f"- {item}: {critical_result if item == 'selection' else 'pass'}" for item in rubric
+    )
+    (task_dir / f"{difficulty}.md").write_text(
+        "---\n"
+        "card_id: example\n"
+        f"task_id: example-{difficulty}\n"
+        f"difficulty: {difficulty}\n"
+        "review_status: pass\n"
+        f"reviewer: {reviewer}\n"
+        f"reviewed_at: {reviewed_at}\n"
+        "---\n\n"
+        "## Project Background\nBackground.\n\n"
+        "## Development Goal\nGoal.\n\n"
+        "## Known Constraints\nConstraints.\n\n"
+        "## Expected Trigger\nTrigger.\n\n"
+        "## Acceptable Decision\nDecision.\n\n"
+        "## Required Artifacts\nArtifacts.\n\n"
+        "## Required Verification\nVerification.\n\n"
+        "## Failure Conditions\nFailure.\n\n"
+        "## Rubric\n"
+        f"{rubric_body}\n\n"
+        "## Review Record\n"
+        f"{review_body}\n\n"
+        "## Agent Response Summary\n"
+        f"{response_summary}\n",
+        encoding="utf-8",
+    )
+
+
+def add_procedure_bindings(drafts: Path):
+    sidecar = drafts / "src-001" / "example.evidence.md"
+    with sidecar.open("a", encoding="utf-8") as handle:
+        for label in (
+            "Procedure Trigger",
+            "Procedure Decision Inputs",
+            "Procedure Option Relationship",
+            "Procedure Selection Rules",
+            "Procedure Required Artifacts",
+            "Procedure Verification",
+        ):
+            handle.write(f"- {label}: CLM-001\n")
+
+
 class ValidateDistillationTests(unittest.TestCase):
     def test_accepts_complete_publishable_package(self):
         validator = load_validator()
@@ -314,6 +399,115 @@ class ValidateDistillationTests(unittest.TestCase):
             (cards / "example.md").write_text("---\nid: example\nstatus: draft\n---\n", encoding="utf-8")
             errors = validator.validate_package(root, drafts, cards)
             self.assertTrue(any("example.md" in error and "active" in error for error in errors))
+
+    def test_rejects_v1_published_card_without_three_evaluation_tasks(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            add_procedure_bindings(drafts)
+            write_v1_card(cards)
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("exactly three evaluation tasks" in error for error in errors))
+
+    def test_accepts_v1_published_card_with_three_passed_tasks(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            add_procedure_bindings(drafts)
+            write_v1_card(cards)
+            for difficulty in ("typical", "boundary", "anti-pattern"):
+                write_evaluation_task(cards, difficulty)
+            self.assertEqual([], validator.validate_package(root, drafts, cards))
+
+    def test_rejects_v1_task_with_critical_rubric_failure(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            add_procedure_bindings(drafts)
+            write_v1_card(cards)
+            write_evaluation_task(cards, "typical")
+            write_evaluation_task(cards, "boundary", critical_result="fail")
+            write_evaluation_task(cards, "anti-pattern")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("critical rubric failure" in error for error in errors))
+
+    def test_rejects_v1_task_without_reviewer_or_response_summary(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            add_procedure_bindings(drafts)
+            write_v1_card(cards)
+            write_evaluation_task(cards, "typical", reviewer="", response_summary="")
+            write_evaluation_task(cards, "boundary")
+            write_evaluation_task(cards, "anti-pattern")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("reviewer" in error for error in errors))
+            self.assertTrue(any("Agent Response Summary" in error for error in errors))
+
+    def test_rejects_v1_task_missing_required_section(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            add_procedure_bindings(drafts)
+            write_v1_card(cards)
+            for difficulty in ("typical", "boundary", "anti-pattern"):
+                write_evaluation_task(cards, difficulty)
+            task = cards.parent / "eval" / "development-agent" / "example" / "boundary.md"
+            task.write_text(
+                task.read_text(encoding="utf-8").replace("## Failure Conditions\nFailure.\n\n", ""),
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("Failure Conditions" in error for error in errors))
+
+    def test_rejects_v1_card_with_more_than_three_tasks(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            add_procedure_bindings(drafts)
+            write_v1_card(cards)
+            for difficulty in ("typical", "boundary", "anti-pattern"):
+                write_evaluation_task(cards, difficulty)
+            task_dir = cards.parent / "eval" / "development-agent" / "example"
+            (task_dir / "extra.md").write_text((task_dir / "typical.md").read_text(encoding="utf-8"), encoding="utf-8")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("exactly three evaluation tasks" in error for error in errors))
 
 
 if __name__ == "__main__":

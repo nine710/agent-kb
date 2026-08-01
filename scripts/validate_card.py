@@ -20,6 +20,29 @@ REQUIRED_SECTIONS = [
     "## Anti-Patterns",
     "## Sources",
 ]
+VALID_CARD_CONTRACTS = {"decision-card-v0", "development-agent-v1"}
+VALID_DECISION_SCOPES = {
+    "agent-runtime-architecture",
+    "knowledge-retrieval",
+    "evaluation",
+    "continuous-improvement",
+    "multi-agent-topology",
+}
+VALID_OPTION_RELATIONSHIPS = {
+    "exclusive",
+    "composable",
+    "layered",
+    "sequential",
+    "composable-by-information-type",
+}
+PROCEDURE_SUBSECTIONS = [
+    "### Trigger",
+    "### Decision Inputs",
+    "### Option Relationship",
+    "### Selection Rules",
+    "### Required Artifacts",
+    "### Verification",
+]
 
 
 def parse_frontmatter(text):
@@ -63,6 +86,15 @@ def count_options(body):
     return len(re.findall(r"^### Option", body, re.MULTILINE))
 
 
+def section_has_content(body, heading):
+    match = re.search(
+        rf"^{re.escape(heading)}\s*$\n(.*?)(?=^### |^## |\Z)",
+        body,
+        re.MULTILINE | re.DOTALL,
+    )
+    return bool(match and match.group(1).strip())
+
+
 def validate(path):
     """Return (errors, warnings) for a card file."""
     errors = []
@@ -82,6 +114,26 @@ def validate(path):
     # 2. status must be 'active' in cards/
     if fm.get("status") and fm["status"] != "active":
         errors.append(f"status must be 'active' in cards/, got: '{fm.get('status')}'")
+
+    # 2b. Staged consumer-facing card contract
+    contract = fm.get("card_contract", "")
+    if not contract:
+        errors.append("missing or empty frontmatter field: card_contract")
+    elif contract not in VALID_CARD_CONTRACTS:
+        errors.append(f"invalid card_contract: {contract}")
+    elif contract == "development-agent-v1":
+        if fm.get("consumer") != "development-agent":
+            errors.append("development-agent-v1 cards require consumer: development-agent")
+        if fm.get("decision_scope") not in VALID_DECISION_SCOPES:
+            errors.append(f"invalid or missing decision_scope: {fm.get('decision_scope', '')}")
+        if fm.get("option_relationship") not in VALID_OPTION_RELATIONSHIPS:
+            errors.append(f"invalid or missing option_relationship: {fm.get('option_relationship', '')}")
+        if "## Development Agent Procedure" not in body:
+            errors.append("missing section: ## Development Agent Procedure")
+        else:
+            for heading in PROCEDURE_SUBSECTIONS:
+                if not section_has_content(body, heading):
+                    errors.append(f"missing or empty Procedure subsection: {heading}")
 
     # 3. Options >= 3
     opt_count = count_options(body)
