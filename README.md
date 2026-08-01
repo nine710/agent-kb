@@ -22,7 +22,7 @@ AI Agent 设计知识库：策展决策卡（curated decision cards），用于�
 
 ## 蒸馏 Skill
 
-仓库内的 `skills/agent-kb-distill/` 是统一蒸馏入口。人工提供来源后，Skill 建立材料画像和证据台账，再完成决策地图对齐、地图演进提议、既有卡重审，最后才建立候选问题队列。目标为 `development-agent-v1` 的候选还必须完成开发 Agent 适配、Procedure 证据绑定和三项公开任务审查。只有同时通过语义门禁、`python scripts/validate_distillation.py <source-package> --drafts drafts --cards cards` 与 `python scripts/validate_card.py --all` 的候选才会以 `published` 状态进入 `cards/`；`raw-only`、`out-of-scope`、`rejected` 也会保留并记录原因。Skill 不执行 Git 操作。
+仓库内的 `.agents/skills/agent-kb-distill/` 是统一蒸馏入口。它是项目级 Codex Skill，仅在本仓库会话中发现。人工提供来源后，Skill 建立材料画像和证据台账，再完成决策地图对齐、地图演进提议、既有卡重审，最后才建立候选问题队列。目标为 `development-agent-v1` 的候选还必须完成开发 Agent 适配、Procedure 证据绑定和三项公开任务审查。只有同时通过语义门禁、`python scripts/validate_distillation.py <source-package> --drafts drafts --cards cards` 与 `python scripts/validate_card.py --all` 的候选才会以 `published` 状态进入 `cards/`；`raw-only`、`out-of-scope`、`rejected` 也会保留并记录原因。Skill 不执行 Git 操作。
 
 ## 本地蒸馏材料
 
