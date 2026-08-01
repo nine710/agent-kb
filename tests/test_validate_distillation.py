@@ -22,6 +22,8 @@ def write_package(
     inference_chain="",
     candidate_id="candidate-three-way",
     three_way_assessment="pass",
+    include_map_archives=True,
+    design_task_id="context-and-state-architecture",
 ):
     derived = root / "derived"
     derived.mkdir(parents=True)
@@ -39,11 +41,40 @@ def write_package(
         "# Candidate Problems\n\n"
         f"## {candidate_id}\n\n"
         f"status: {candidate_status}\n\n"
+        f"design_task_id: {design_task_id}\n\n"
         "claim_refs: CLM-001\n\n"
         f"three_way_assessment: {three_way_assessment}\n",
         encoding="utf-8",
     )
     (derived / "distillation-report.md").write_text("# Distillation Report\n\nstatus: completed\n", encoding="utf-8")
+    if include_map_archives:
+        write_map_archives(derived)
+
+
+def write_map_archives(derived: Path):
+    (derived / "decision-map-alignment.md").write_text(
+        "# Decision Map Alignment\n\n## alignment-001\n\n"
+        "claim_refs: CLM-001\n"
+        "mapping_status: mapped\n"
+        "design_task_id: context-and-state-architecture\n"
+        "affected_cards: example\n",
+        encoding="utf-8",
+    )
+    (derived / "map-change-proposals.md").write_text(
+        "# Map Change Proposals\n\n## proposal-001\n\n"
+        "proposal_type: none\n"
+        "claim_refs: CLM-001\n"
+        "reason: No map change from this source.\n",
+        encoding="utf-8",
+    )
+    (derived / "card-review.md").write_text(
+        "# Card Review\n\n## review-001\n\n"
+        "decision: keep\n"
+        "claim_refs: CLM-001\n"
+        "reason: Existing card remains applicable.\n"
+        "next_action: keep\n",
+        encoding="utf-8",
+    )
 
 
 def write_draft(
@@ -166,6 +197,34 @@ def add_procedure_bindings(drafts: Path):
 
 
 class ValidateDistillationTests(unittest.TestCase):
+    def test_rejects_package_without_decision_map_archives(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, include_map_archives=False)
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("decision-map-alignment.md" in error for error in errors))
+
+    def test_rejects_candidate_without_design_task_or_mapping_reason(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, design_task_id="")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("design_task_id" in error for error in errors))
+
     def test_accepts_complete_publishable_package(self):
         validator = load_validator()
         with tempfile.TemporaryDirectory() as temp_dir:

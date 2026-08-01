@@ -14,6 +14,9 @@ REQUIRED_DERIVED = (
     "evidence-ledger.md",
     "candidate-problems.md",
     "distillation-report.md",
+    "decision-map-alignment.md",
+    "map-change-proposals.md",
+    "card-review.md",
 )
 CLAIM_ID_RE = re.compile(r"\bCLM-\d+\b")
 KEY_VALUE_RE = re.compile(r"^(?:-[ \t]*)?([a-z_]+):[ \t]*(.+)$", re.MULTILINE)
@@ -78,6 +81,8 @@ CRITICAL_RUBRIC_IDS = {
     "verification",
 }
 REQUIRED_DIFFICULTIES = {"typical", "boundary", "anti-pattern"}
+VALID_MAPPING_STATUSES = {"mapped", "emerging", "excluded"}
+VALID_CARD_REVIEW_DECISIONS = {"keep", "update", "split", "merge", "deprecate", "none"}
 
 
 def draft_files(drafts_dir, source_id):
@@ -121,6 +126,67 @@ def candidate_records(path):
     if current_id:
         records[current_id] = metadata("\n".join(current_lines))
     return records
+
+
+def record_claim_ids(record):
+    return sorted(set(CLAIM_ID_RE.findall(record.get("claim_refs", ""))))
+
+
+def validate_decision_map_archives(derived, claims):
+    errors = []
+    alignment = candidate_records(derived / "decision-map-alignment.md")
+    proposals = candidate_records(derived / "map-change-proposals.md")
+    reviews = candidate_records(derived / "card-review.md")
+
+    if not alignment:
+        errors.append("decision-map-alignment.md must contain a record")
+    if not proposals:
+        errors.append("map-change-proposals.md must contain a record")
+    if not reviews:
+        errors.append("card-review.md must contain a record")
+
+    for record_id, record in alignment.items():
+        mapping_status = record.get("mapping_status", "")
+        if mapping_status not in VALID_MAPPING_STATUSES:
+            errors.append(f"invalid mapping_status in decision-map-alignment.md: {record_id}")
+        if mapping_status == "mapped" and not record.get("design_task_id"):
+            errors.append(f"mapped alignment requires design_task_id: {record_id}")
+        if mapping_status in {"emerging", "excluded"} and not record.get("mapping_reason"):
+            errors.append(f"unmapped alignment requires mapping_reason: {record_id}")
+        for claim_id in record_claim_ids(record):
+            if claim_id not in claims:
+                errors.append(f"decision-map-alignment.md references missing claim: {claim_id}")
+
+    for record_id, record in proposals.items():
+        proposal_type = record.get("proposal_type", "")
+        if proposal_type not in {"none", "add", "split", "merge", "exclude"}:
+            errors.append(f"invalid proposal_type in map-change-proposals.md: {record_id}")
+        if not record.get("reason"):
+            errors.append(f"map-change proposal requires reason: {record_id}")
+        if proposal_type in {"add", "split"} and record.get("target_status") == "core":
+            for field in (
+                "proposed_task_id",
+                "why_not_existing_task",
+                "required_artifacts",
+                "failure_risks",
+                "child_problem_candidates",
+                "coverage_maturity",
+            ):
+                if not record.get(field):
+                    errors.append(f"core map proposal missing {field}: {record_id}")
+        for claim_id in record_claim_ids(record):
+            if claim_id not in claims:
+                errors.append(f"map-change-proposals.md references missing claim: {claim_id}")
+
+    for record_id, record in reviews.items():
+        if record.get("decision") not in VALID_CARD_REVIEW_DECISIONS:
+            errors.append(f"invalid card review decision: {record_id}")
+        if not record.get("reason") or not record.get("next_action"):
+            errors.append(f"card review requires reason and next_action: {record_id}")
+        for claim_id in record_claim_ids(record):
+            if claim_id not in claims:
+                errors.append(f"card-review.md references missing claim: {claim_id}")
+    return errors
 
 
 def sidecar_bindings(path):
@@ -310,6 +376,15 @@ def validate_package(package_root, drafts_dir, cards_dir):
     }
     if not claims:
         errors.append("evidence-ledger.md must contain a claim table")
+
+    for candidate_id, candidate in candidates.items():
+        if candidate.get("design_task_id"):
+            continue
+        if candidate.get("mapping_status") in {"emerging", "excluded"} and candidate.get("mapping_reason"):
+            continue
+        errors.append(f"candidate requires design_task_id or mapping_status/reason: {candidate_id}")
+
+    errors.extend(validate_decision_map_archives(derived, claims))
 
     source_drafts = draft_files(drafts_dir, source_id)
     source_evidence = evidence_files(drafts_dir, source_id)
