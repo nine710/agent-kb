@@ -196,9 +196,7 @@ def validate_decision_map(tasks):
 def decision_map_path_for_card(card_path, explicit_path):
     if explicit_path:
         return Path(explicit_path)
-    if Path(card_path).resolve().parent == REPO_ROOT / "cards":
-        return REPO_ROOT / "DECISION-MAP.md"
-    return None
+    return REPO_ROOT / "DECISION-MAP.md"
 
 
 def validate_decision_map_binding(fm, map_path):
@@ -323,8 +321,10 @@ def main():
         cards = [sys.argv[1]]
 
     has_errors = False
+    card_metadata = {}
     for card in cards:
         errors, warnings = validate(card)
+        card_metadata[Path(card).stem] = parse_frontmatter(Path(card).read_text(encoding="utf-8"))
         rel = os.path.relpath(card)
         if errors:
             has_errors = True
@@ -337,6 +337,23 @@ def main():
                 print(f"  WARN: {w}")
         else:
             print(f"PASS: {rel}")
+
+    if sys.argv[1] == "--all":
+        try:
+            tasks = load_decision_map(REPO_ROOT / "DECISION-MAP.md")
+        except (OSError, ValueError) as error:
+            has_errors = True
+            print(f"FAIL: DECISION-MAP.md\n  ERROR: {error}")
+        else:
+            for task_id, task in tasks.items():
+                for card_id in task["coverage_cards"]:
+                    card = card_metadata.get(card_id)
+                    if card is None:
+                        has_errors = True
+                        print(f"FAIL: DECISION-MAP.md\n  ERROR: {task_id} references missing card: {card_id}")
+                    elif card.get("status") != "active" or card.get("design_task_id") != task_id:
+                        has_errors = True
+                        print(f"FAIL: DECISION-MAP.md\n  ERROR: {card_id} does not actively bind {task_id}")
 
     sys.exit(1 if has_errors else 0)
 

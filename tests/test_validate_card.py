@@ -21,7 +21,7 @@ def write_card(
     relationship="exclusive",
     consumer="development-agent",
     design_task_id="context-and-state-architecture",
-    design_goal="Let the Agent keep correct task state.",
+    design_goal="让 Agent 在任务全过程获得正确、足够、可恢复的信息。",
     required_artifact_types="[context-layering-table]",
     failure_risks="[context-corruption]",
 ):
@@ -91,7 +91,7 @@ def write_decision_map(path: Path):
         "id: context-and-state-architecture\n"
         "name: Context and state architecture\n"
         "status: core\n"
-        "design_goal: Let the Agent keep correct task state.\n"
+        "design_goal: 让 Agent 在任务全过程获得正确、足够、可恢复的信息。\n"
         "required_artifacts: [context-layering-table, state-model]\n"
         "failure_risks: [context-corruption, lost-state]\n"
         "child_problems: [context-loading-strategy]\n"

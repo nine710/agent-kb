@@ -2,6 +2,7 @@
 """Validate source-level distillation artifacts before card publication."""
 
 import argparse
+import importlib.util
 import re
 import sys
 from pathlib import Path
@@ -343,6 +344,18 @@ def validate_development_agent_evaluations(card_path, eval_root):
     return errors
 
 
+def load_core_tasks(cards_dir):
+    map_path = Path(cards_dir).parent / "DECISION-MAP.md"
+    if not map_path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location(
+        "validate_card_for_distillation", Path(__file__).with_name("validate_card.py")
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.load_decision_map(map_path)
+
+
 def validate_package(package_root, drafts_dir, cards_dir):
     package_root = Path(package_root)
     drafts_dir = Path(drafts_dir)
@@ -377,10 +390,23 @@ def validate_package(package_root, drafts_dir, cards_dir):
     if not claims:
         errors.append("evidence-ledger.md must contain a claim table")
 
+    try:
+        core_tasks = load_core_tasks(cards_dir)
+    except (OSError, ValueError) as error:
+        errors.append(f"invalid decision map for distillation: {error}")
+        core_tasks = None
+
     for candidate_id, candidate in candidates.items():
-        if candidate.get("design_task_id"):
+        task_id = candidate.get("design_task_id", "")
+        if task_id:
+            if core_tasks is not None and (
+                task_id not in core_tasks or core_tasks[task_id].get("status") != "core"
+            ):
+                errors.append(f"candidate must bind a known core design_task_id: {candidate_id}")
             continue
         if candidate.get("mapping_status") in {"emerging", "excluded"} and candidate.get("mapping_reason"):
+            if candidate.get("target_contract") == DEVELOPMENT_AGENT_CONTRACT:
+                errors.append(f"development-agent-v1 candidate requires design_task_id: {candidate_id}")
             continue
         errors.append(f"candidate requires design_task_id or mapping_status/reason: {candidate_id}")
 
@@ -449,6 +475,11 @@ def validate_package(package_root, drafts_dir, cards_dir):
             if card and card.is_file():
                 card_metadata = metadata(card.read_text(encoding="utf-8"))
                 if card_metadata.get("card_contract") == DEVELOPMENT_AGENT_CONTRACT:
+                    for field in ("design_task_id", "design_goal", "required_artifact_types", "failure_risks"):
+                        if not draft_metadata.get(field):
+                            errors.append(f"v1 draft missing {field}: {draft.name}")
+                        elif draft_metadata.get(field) != card_metadata.get(field):
+                            errors.append(f"v1 draft {field} does not match published card: {draft.name}")
                     binding_labels = {label for label, _ in bindings}
                     missing_bindings = REQUIRED_PROCEDURE_BINDINGS - binding_labels
                     if missing_bindings:
