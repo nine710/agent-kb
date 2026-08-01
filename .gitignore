@@ -7,6 +7,9 @@ drafts/
 # codegraph 索引
 .codegraph/
 
+# 本地隔离工作树
+.worktrees/
+
 # 内部规划/设计文档（本地用，不公开）
 planning/
 
