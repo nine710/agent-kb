@@ -24,7 +24,7 @@
 | **Tradeoffs** | 是 | 每个选项的优势与代价 |
 | **Apply to Agent Development** | 是 | 外部可推导的通用决策规则；禁止个人项目经验 |
 | **Anti-Patterns** | 是 | 源中或逻辑可证的反模式；禁止个人经验 |
-| **Sources** | 是 | 每条含源 ID + 精确定位（markdown 章节号，非 PDF 页码） |
+| **Sources** | 是 | 每条含源 ID + 源原生稳定定位（Markdown 标题优先；其他格式用可复核页码、锚点或文件位置） |
 
 ## 硬约束
 
@@ -48,9 +48,10 @@
 - `raw/sources.md`：公开，必读源索引
 - `raw/src-NNN-<source-slug>/`：每个来源的本地材料包，由 `.gitignore` 排除
 - `raw/src-NNN-<source-slug>/source/`：不修改的上游原始材料；项目、配套文件、PDF 或文档属于同一来源时放在同一个材料包中
+- `raw/src-NNN-<source-slug>/derived/`：Agent 生成的材料画像、提取文本、证据台账、候选问题、进度和蒸馏报告
 - `raw/src-NNN-<source-slug>/excerpts/`：该来源的 fair-use 短摘录和定位笔记
 - 摘录长度上限：单条不超过 500 字，单源摘录总计不超过 2000 字
-- 每条摘录必须标注精确来源定位（markdown 章节号 / 小节号）
+- 每条摘录必须标注精确来源定位（优先 Markdown 章节 / 小节；其他格式使用源原生稳定定位）
 - `excerpts/` 不复制来源全文、整书 PDF 或 EPUB；原始材料可原样保留在同一材料包的 `source/` 中，但材料包不进入公开仓库
 
 ## 源材料格式优先级

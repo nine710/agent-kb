@@ -16,10 +16,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. **≥3 真选项**——必须是真正不同的设计路径，不是同一方案的变体或换皮。凑不出 3 叉的问题只进 `raw/sources.md` 的 raw-only 标注，**不建卡**（混合门槛）。
 2. **零个人经验**——所有字段（尤其 `Apply to Agent Development`、`Anti-Patterns`）严禁出现任何个人项目经历、项目名、踩坑记录。只写外部可推导的通用规则。**永久不做个人经验入卡。**
-3. **源可追溯**——每个选项、每条权衡、每条应用规则都必须能回溯到 `Sources` 中的具体源；定位用 **markdown 章节号**，**不用 PDF 页码**。
+3. **源可追溯**——每个选项、每条权衡、每条应用规则都必须能回溯到 `Sources` 中的具体源；优先使用 **markdown 章节号**，其他材料使用可复核的源原生定位（文件位置、锚点或页码）。
 4. **问题可复用**——`problem` 是可反复遇到的设计问题模板，不绑定某一篇文章或某一本书。
 5. **非摘要**——产出的是决策单元（问题 + 选项 + 权衡），不是文章或书籍的读后感式摘要。
-6. **公开边界**——`raw/src-NNN-<source-slug>/`（每个来源的原材料和 fair-use 摘录）与 `drafts/`（未过门草稿）必须被 `.gitignore` 排除，**永不进公开仓库**。
+6. **公开边界**——`raw/src-NNN-<source-slug>/`（每个来源的原材料、派生分析和 fair-use 摘录）与 `drafts/`（未过门草稿）必须被 `.gitignore` 排除，**永不进公开仓库**。
 
 草稿进 `cards/` 前，还必须逐条过对抗审查清单（见 `SCHEMA.md`，共 5 条：真三叉、非摘要、零个人经验、源可追溯、问题可复用）。
 
@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `templates/card.md` | 空白卡片模板 | ✅ |
 | `SCHEMA.md` | 卡片 schema + 对抗审查清单 + 摘录规范 | ✅ |
 | `raw/sources.md` | 必读源索引（源 ID + 章节→问题映射 + raw-only 问题标注） | ✅ |
-| `raw/src-NNN-<source-slug>/` | 一个来源的本地材料包：`source/` 放原始材料，`excerpts/` 放 fair-use 短摘录（单条 ≤500 字、单源 ≤2000 字） | ❌ gitignore |
+| `raw/src-NNN-<source-slug>/` | 一个来源的本地材料包：`source/` 放原始材料，`derived/` 放台账/候选/报告，`excerpts/` 放 fair-use 短摘录（单条 ≤500 字、单源 ≤2000 字） | ❌ gitignore |
 | `drafts/` | 未过门的草稿卡（`status: draft`） | ❌ gitignore |
 | `scripts/validate_card.py` | 卡片 schema 验证脚本（Python 标准库 only） | ✅ |
 
@@ -48,26 +48,26 @@ raw/
     ├── source/                             # 不修改的上游输入材料及其原始组织
     │   ├── <项目仓库或配套文件夹>/
     │   └── <同源 PDF、Markdown、HTML 等文件>
+    ├── derived/                            # Agent 生成的材料画像、证据、候选和报告
     └── excerpts/                           # fair-use 短摘录、定位和阅读笔记
 ```
 
 - 一个材料包可以同时含项目、文档、论文、网页存档或配套文件；只要它们共同构成同一个来源，就不得按“项目 / 文档 / 论文”拆到不同目录。
-- `source/` 保持上游材料原样，不能把 Agent 的摘要、推断或改写混入其中；这些工作内容只放在 `excerpts/` 或 `drafts/`。
-- 新增来源的顺序固定为：先在 `raw/sources.md` 分配 `src-NNN` 并记录许可与可用定位方式，再建 `raw/src-NNN-<source-slug>/` 材料包，最后才开始摘录和草拟卡片。
+- `source/` 保持上游材料原样，不能把 Agent 的摘要、推断或改写混入其中；这些工作内容只放在 `derived/`、`excerpts/` 或 `drafts/`。
+- 新增来源由 `skills/agent-kb-distill/` 自动分配 `src-NNN`、登记许可、建立材料包和生成材料画像；人工只提供或确认来源。
 
 ### 蒸馏管线（卡片如何从源材料走到 `cards/`）
 
 ```
-人登记 src-NNN + 收集同源材料
-  → raw/src-NNN-<source-slug>/{source,excerpts}
-  → 人选 problem + Agent 按 SCHEMA 草拟
-  → drafts/
-  → Agent 对抗审查（5 条清单）
-  → 人工终审
+人工选择来源
+  → Agent 通过 skills/agent-kb-distill/ 建立 raw/src-NNN-<source-slug>/{source,derived,excerpts}
+  → Agent 完整审读、建立证据台账、发现候选并语义去重
+  → drafts/ + evidence sidecar
+  → Agent 对抗审查、来源预检和 card schema 验证
   → cards/
 ```
 
-人工主导，不全自动：人定源、定问题；Agent 填草稿并自检；人做最终终审放行。
+人工只选择来源；Agent 自主发现问题、草拟、审查和本地发布。Skill 不执行 Git 操作；项目开发流程单独负责提交和推送。
 
 ### 源↔卡映射
 
@@ -83,7 +83,7 @@ python scripts/validate_card.py cards/<card>.md   # 验证单张卡
 python scripts/validate_card.py --all             # 验证所有正式卡
 ```
 
-验证脚本是本仓库唯一的"测试"。每张卡进 `cards/` 前必须 PASS（退出码 0）。它检查：frontmatter 7 字段齐全、`cards/` 下 `status` 必须是 `active`、Options ≥3、5 个必填正文段、`id` 与文件名一致、Sources 含 `src-` 引用。
+验证器包括 `scripts/validate_card.py` 与 `scripts/validate_distillation.py`。前者检查正式卡结构；后者检查来源包、证据台账、草稿 sidecar、进度和报告。每张卡进 `cards/` 前必须通过二者以及 Skill 的语义审查。
 
 ## 源材料工作流
 

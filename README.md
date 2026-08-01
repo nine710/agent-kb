@@ -16,6 +16,10 @@ AI Agent 设计知识库：策展决策卡（curated decision cards），用于�
 
 详见 `SCHEMA.md`。空白模板见 `templates/card.md`。
 
+## 蒸馏 Skill
+
+仓库内的 `skills/agent-kb-distill/` 是统一蒸馏入口。人工提供来源后，Skill 建立材料画像、证据台账和候选问题队列；只有同时通过语义门禁、`python scripts/validate_distillation.py <source-package> --drafts drafts --cards cards` 与 `python scripts/validate_card.py --all` 的草稿才会进入 `cards/`。Skill 不执行 Git 操作。
+
 ## 本地蒸馏材料
 
 `raw/` 是蒸馏输入层。`raw/sources.md` 是公开的来源索引；每个实际来源的原始文件、配套项目和 fair-use 摘录都收纳在同一个本地材料包中：`raw/src-NNN-<source-slug>/source/` 与 `raw/src-NNN-<source-slug>/excerpts/`。材料包由 `.gitignore` 排除，不进入公开仓库。

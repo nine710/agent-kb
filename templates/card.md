@@ -8,6 +8,8 @@ status: draft
 source_ids: [src-001]
 ---
 
+<!-- Drafts require a sibling <id>.evidence.md sidecar before publication. -->
+
 ## Options
 
 ### Option A: <名称>

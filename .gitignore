@@ -24,3 +24,6 @@ AGENTS.md
 .DS_Store
 Thumbs.db
 *.swp
+
+# Python 运行缓存
+__pycache__/

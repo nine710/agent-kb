@@ -32,6 +32,23 @@
 | 5 | `chapter5.md` | Coding Agent | 代码生成范围控制 |
 | 6 | `chapter6.md` | Agent 评估 | 评估环境选择 / 指标设计 |
 
+#### 全书覆盖盘点
+
+| 章 | 处理状态 | 结果 |
+|----|----------|------|
+| 1 | completed | `constraint-placement` 已覆盖；工作流 / 自主编排因缺少第三条独立路径保留为 raw-only |
+| 2 | completed | `context-loading-strategy` 已覆盖；Skills 为 `tool-capability-surface` 补充证据 |
+| 3 | completed | 发布 `knowledge-retrieval-strategy` |
+| 4 | completed | 工具能力承载与长时间任务调度均因不足三叉保持 raw-only |
+| 5 | completed | Coding Agent 会话状态与恢复缺少三叉比较，保持 raw-only |
+| 6 | completed | 发布 `agent-evaluation-environment` |
+| 7 | completed | 后训练主要属于模型训练，不纳入当前运行时 Agent 卡片范围 |
+| 8 | completed | 发布 `experience-encoding` |
+| 9 | completed | 多模态、GUI 与机器人控制超出当前编程 Agent 主域 |
+| 10 | completed | 发布 `multi-agent-coordination` |
+
+`src-001` 的完整本地证据台账、候选队列、进度和蒸馏报告位于 `raw/src-001-ai-agent-book/derived/`，由 `.gitignore` 排除。
+
 ### src-002（待补充）
 
 公开工程文档（Claude Code / Agent SDK 官方文档等）。在蒸馏卡片时如需补充第 3 真分歧再纳入。
