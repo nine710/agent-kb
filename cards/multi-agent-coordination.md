@@ -4,6 +4,10 @@ card_contract: development-agent-v1
 consumer: development-agent
 decision_scope: multi-agent-topology
 option_relationship: exclusive
+design_task_id: continuous-improvement-and-collaboration-architecture
+design_goal: 让 Agent 在可验证、可回滚的条件下沉淀经验并协调多方工作。
+required_artifact_types: [coordination-topology]
+failure_risks: [coordination-error-cascade]
 problem: 多 Agent 协作应采用管理者、对等协作还是去中心化移交拓扑？
 tags: [multi-agent, subagents, coordination, topology]
 when_to_use: 多个 Agent 需要分工、汇总、审查或移交任务，必须决定控制权和信息流由谁协调时。

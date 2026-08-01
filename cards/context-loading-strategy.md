@@ -4,6 +4,10 @@ card_contract: development-agent-v1
 consumer: development-agent
 decision_scope: agent-runtime-architecture
 option_relationship: composable-by-information-type
+design_task_id: context-and-state-architecture
+design_goal: 让 Agent 在任务全过程获得正确、足够、可恢复的信息。
+required_artifact_types: [context-layering-table]
+failure_risks: [context-corruption]
 problem: Agent 完成任务所需的信息与知识应放在哪一层——常驻静态上下文、按需加载、运行时压缩，还是外部化（RAG / 子 Agent 隔离）？
 tags: [context-engineering, skills, compression, rag, memory]
 when_to_use: 设计 Agent 的上下文供给时，需要在"信息充分性"与"上下文窗口 / 成本 / 注意力"之间权衡，决定某类信息（指令、领域知识、工具结果、历史轨迹）以何种形态进入或留在主上下文。

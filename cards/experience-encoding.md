@@ -4,6 +4,10 @@ card_contract: development-agent-v1
 consumer: development-agent
 decision_scope: continuous-improvement
 option_relationship: layered
+design_task_id: continuous-improvement-and-collaboration-architecture
+design_goal: 让 Agent 在可验证、可回滚的条件下沉淀经验并协调多方工作。
+required_artifact_types: [experience-release-record]
+failure_risks: [unverified-capability-regression]
 problem: Agent 的运行经验应沉淀为知识、指令、程序还是模型参数？
 tags: [continuous-improvement, memory, skills, harness, training]
 when_to_use: Agent 已积累可复用的成功路径、失败模式或运行轨迹，需要决定如何让后续任务受益时。

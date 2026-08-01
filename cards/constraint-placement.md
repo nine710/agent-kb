@@ -4,6 +4,10 @@ card_contract: development-agent-v1
 consumer: development-agent
 decision_scope: agent-runtime-architecture
 option_relationship: layered
+design_task_id: safety-and-human-control-architecture
+design_goal: 让 Agent 的约束、验证和高风险人工控制形成可审计闭环。
+required_artifact_types: [constraint-layering-table]
+failure_risks: [unauthorized-side-effect]
 problem: Agent 的硬约束（行为边界、安全规则、业务规则）应承载在哪一层——系统提示词常驻、Skills 按需加载、Harness 程序强制，还是专用工具 + 人在回路？
 tags: [harness, constitution, skills, guardrails, constraints]
 when_to_use: 设计或评审 Agent 时，需要决定某条约束（安全策略、业务规则、行为边界、高危操作防线）放在哪一层承载；尤其当约束数量增长、上下文成本或可靠性成为瓶颈时反复遇到。

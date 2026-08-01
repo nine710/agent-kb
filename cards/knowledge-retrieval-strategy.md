@@ -4,6 +4,10 @@ card_contract: development-agent-v1
 consumer: development-agent
 decision_scope: knowledge-retrieval
 option_relationship: composable-by-information-type
+design_task_id: knowledge-and-memory-architecture
+design_goal: 让 Agent 获取可追溯、及时且与任务相关的外部知识。
+required_artifact_types: [retrieval-evaluation-set]
+failure_risks: [stale-or-conflicting-knowledge]
 problem: Agent 获取外部知识时应采用稠密检索、稀疏检索、混合检索，还是结构化索引？
 tags: [rag, retrieval, knowledge-base, memory]
 when_to_use: 为 Agent 的文档、代码、规范或长期知识设计检索和组织方式，需要平衡语义召回、精确匹配、可解释性和治理时。

@@ -14,7 +14,17 @@ def load_validator():
     return module
 
 
-def write_card(path: Path, contract="decision-card-v0", procedure=True, relationship="exclusive", consumer="development-agent"):
+def write_card(
+    path: Path,
+    contract="decision-card-v0",
+    procedure=True,
+    relationship="exclusive",
+    consumer="development-agent",
+    design_task_id="context-and-state-architecture",
+    design_goal="Let the Agent keep correct task state.",
+    required_artifact_types="[context-layering-table]",
+    failure_risks="[context-corruption]",
+):
     procedure_body = ""
     if procedure:
         procedure_body = """
@@ -42,6 +52,10 @@ Run the design checks.
         f"consumer: {consumer}\n"
         "decision_scope: agent-runtime-architecture\n"
         f"option_relationship: {relationship}\n"
+        f"design_task_id: {design_task_id}\n"
+        f"design_goal: {design_goal}\n"
+        f"required_artifact_types: {required_artifact_types}\n"
+        f"failure_risks: {failure_risks}\n"
         if contract == "development-agent-v1"
         else ""
     )
@@ -66,6 +80,25 @@ Run the design checks.
         + procedure_body
         + "\n## Anti-Patterns\n\nDo not ignore constraints.\n\n"
         "## Sources\n\n- [src-001] chapter1.md §Agent\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def write_decision_map(path: Path):
+    path.write_text(
+        "## context-and-state-architecture\n\n"
+        "id: context-and-state-architecture\n"
+        "name: Context and state architecture\n"
+        "status: core\n"
+        "design_goal: Let the Agent keep correct task state.\n"
+        "required_artifacts: [context-layering-table, state-model]\n"
+        "failure_risks: [context-corruption, lost-state]\n"
+        "child_problems: [context-loading-strategy]\n"
+        "coverage_status: covered\n"
+        "coverage_cards: [context-loading-strategy]\n"
+        "coverage_raw_only: []\n"
+        "coverage_evidence_needed: []\n",
         encoding="utf-8",
     )
     return path
@@ -123,6 +156,24 @@ class ValidateCardContractTests(unittest.TestCase):
             path.write_text(path.read_text(encoding="utf-8").replace("card_contract: decision-card-v0\n", ""), encoding="utf-8")
             errors, _ = validator.validate(str(path))
             self.assertTrue(any("card_contract" in error for error in errors))
+
+    def test_rejects_v1_card_with_unknown_design_task(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            map_path = write_decision_map(root / "DECISION-MAP.md")
+            path = write_card(root / "example-card.md", contract="development-agent-v1", design_task_id="missing-task")
+            errors, _ = validator.validate(str(path), decision_map_path=str(map_path))
+            self.assertTrue(any("unknown design_task_id" in error for error in errors))
+
+    def test_rejects_v1_card_with_task_artifact_mismatch(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            map_path = write_decision_map(root / "DECISION-MAP.md")
+            path = write_card(root / "example-card.md", contract="development-agent-v1", required_artifact_types="[tool-schema]")
+            errors, _ = validator.validate(str(path), decision_map_path=str(map_path))
+            self.assertTrue(any("required_artifact_types" in error for error in errors))
 
 
 if __name__ == "__main__":

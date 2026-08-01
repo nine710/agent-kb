@@ -19,6 +19,10 @@
 | `consumer` | string | v1 必填 | 固定为 `development-agent` |
 | `decision_scope` | string | v1 必填 | `agent-runtime-architecture` / `knowledge-retrieval` / `evaluation` / `continuous-improvement` / `multi-agent-topology` |
 | `option_relationship` | string | v1 必填 | `exclusive` / `composable` / `layered` / `sequential` / `composable-by-information-type` |
+| `design_task_id` | string | v1 必填 | `DECISION-MAP.md` 中状态为 `core` 的一级开发责任 ID |
+| `design_goal` | string | v1 必填 | 必须逐字匹配所绑定一级任务的 `design_goal` |
+| `required_artifact_types` | string[] | v1 必填 | 至少一个；必须属于该一级任务允许的工件类型 |
+| `failure_risks` | string[] | v1 必填 | 至少一个；必须属于该一级任务允许的失败风险 |
 
 ## 正文章节
 
@@ -43,7 +47,19 @@
 - `decision-card-v0` 是迁移期卡片：保留有效的设计知识，但尚未声明可直接指导开发 Agent 完成设计交付。
 - `development-agent-v1` 是供 Codex、Claude Code 等编程 Agent 使用的执行型决策卡。它必须具有 consumer 元数据、选项关系和完整的 Development Agent Procedure。
 - `option_relationship` 不允许默认省略。它说明同一张卡中的选项是互斥、可组合、分层、顺序执行，或按信息类型组合。
+- `design_task_id` 将卡片绑定到开发 Agent 的一级设计责任；来源章节、论文段落或项目目录不能替代此绑定。
+- `design_goal`、`required_artifact_types` 和 `failure_risks` 让卡片明确其架构交付和不做决策时的独立风险；验证器拒绝与 `DECISION-MAP.md` 不一致的值。
 - v1 卡的 Procedure 必须使 Agent 能识别触发、收集输入、选择方案、交付工件并验证设计；它不替代 Options 或 Tradeoffs。
+
+## 决策地图
+
+`DECISION-MAP.md` 是公开的一级开发责任 registry。每个 `## <task-id>` 条目使用扁平字段，包含 `status`、`design_goal`、允许的 `required_artifacts` / `failure_risks`、子问题和 coverage。任务状态为 `core`、`emerging` 或 `excluded`；正式 v1 卡只能绑定 `core`。
+
+- `covered`：至少有一张正式卡。
+- `partial`：至少有一张正式卡和一项明确的 raw-only 缺口。
+- `no-published-card`：尚无正式卡，且必须记录补证需求。
+
+一级任务由开发 Agent 的独立设计责任定义，而非某份来源的章节或技术主题。新增、拆分、合并或排除一级任务必须在来源本地档案中说明独立工件、失败风险、候选子问题和不能归入现有任务的原因。
 
 ### Development Agent Procedure
 

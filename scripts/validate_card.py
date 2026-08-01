@@ -8,6 +8,7 @@ Usage:
 import os
 import re
 import sys
+from pathlib import Path
 
 
 REQUIRED_FRONTMATTER = [
@@ -43,6 +44,30 @@ PROCEDURE_SUBSECTIONS = [
     "### Required Artifacts",
     "### Verification",
 ]
+DECISION_MAP_FIELDS = {
+    "id",
+    "name",
+    "status",
+    "design_goal",
+    "required_artifacts",
+    "failure_risks",
+    "child_problems",
+    "coverage_status",
+    "coverage_cards",
+    "coverage_raw_only",
+    "coverage_evidence_needed",
+}
+DECISION_MAP_LIST_FIELDS = {
+    "required_artifacts",
+    "failure_risks",
+    "child_problems",
+    "coverage_cards",
+    "coverage_raw_only",
+    "coverage_evidence_needed",
+}
+DECISION_TASK_STATUSES = {"core", "emerging", "excluded"}
+COVERAGE_STATUSES = {"covered", "partial", "no-published-card"}
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def parse_frontmatter(text):
@@ -95,7 +120,121 @@ def section_has_content(body, heading):
     return bool(match and match.group(1).strip())
 
 
-def validate(path):
+def parse_map_list(value):
+    if not value.startswith("[") or not value.endswith("]"):
+        raise ValueError(f"map list must use [item, item] syntax: {value}")
+    return [item.strip() for item in value[1:-1].split(",") if item.strip()]
+
+
+def load_decision_map(path):
+    """Return a decision-task mapping keyed by id from a flat Markdown registry."""
+    text = Path(path).read_text(encoding="utf-8")
+    matches = list(re.finditer(r"^## ([a-z0-9-]+)\s*$", text, re.MULTILINE))
+    if not matches:
+        raise ValueError("decision map has no task sections")
+
+    tasks = {}
+    for index, match in enumerate(matches):
+        heading_id = match.group(1)
+        block_end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        record = {}
+        for line in text[match.end():block_end].splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if ":" not in line:
+                raise ValueError(f"invalid map line in {heading_id}: {line}")
+            key, _, value = line.partition(":")
+            key = key.strip()
+            value = value.strip()
+            if key not in DECISION_MAP_FIELDS:
+                raise ValueError(f"unknown map field in {heading_id}: {key}")
+            if key in record:
+                raise ValueError(f"duplicate map field in {heading_id}: {key}")
+            record[key] = parse_map_list(value) if key in DECISION_MAP_LIST_FIELDS else value
+        record["_heading_id"] = heading_id
+        task_id = record.get("id", heading_id)
+        if task_id in tasks:
+            raise ValueError(f"duplicate decision map id: {task_id}")
+        tasks[task_id] = record
+
+    errors = validate_decision_map(tasks)
+    if errors:
+        raise ValueError("; ".join(errors))
+    return tasks
+
+
+def validate_decision_map(tasks):
+    """Return structural errors without inspecting card files."""
+    errors = []
+    for task_id, task in tasks.items():
+        for field in DECISION_MAP_FIELDS:
+            if field not in task:
+                errors.append(f"decision map {task_id} missing field: {field}")
+        if task.get("id") != task.get("_heading_id"):
+            errors.append(f"decision map id does not match heading: {task_id}")
+        if task.get("status") not in DECISION_TASK_STATUSES:
+            errors.append(f"decision map {task_id} has invalid status")
+        if task.get("coverage_status") not in COVERAGE_STATUSES:
+            errors.append(f"decision map {task_id} has invalid coverage_status")
+        for field in ("required_artifacts", "failure_risks", "child_problems"):
+            if not task.get(field):
+                errors.append(f"decision map {task_id} requires non-empty {field}")
+        coverage_status = task.get("coverage_status")
+        coverage_cards = task.get("coverage_cards", [])
+        raw_only = task.get("coverage_raw_only", [])
+        evidence_needed = task.get("coverage_evidence_needed", [])
+        if coverage_status == "covered" and not coverage_cards:
+            errors.append(f"decision map {task_id} covered status requires coverage_cards")
+        if coverage_status == "partial" and (not coverage_cards or not raw_only):
+            errors.append(f"decision map {task_id} partial status requires cards and raw-only gaps")
+        if coverage_status == "no-published-card" and (coverage_cards or not evidence_needed):
+            errors.append(f"decision map {task_id} no-published-card status requires evidence gap")
+    return errors
+
+
+def decision_map_path_for_card(card_path, explicit_path):
+    if explicit_path:
+        return Path(explicit_path)
+    if Path(card_path).resolve().parent == REPO_ROOT / "cards":
+        return REPO_ROOT / "DECISION-MAP.md"
+    return None
+
+
+def validate_decision_map_binding(fm, map_path):
+    errors = []
+    if map_path is None:
+        return errors
+    try:
+        tasks = load_decision_map(map_path)
+    except (OSError, ValueError) as error:
+        return [f"invalid decision map: {error}"]
+
+    task_id = fm.get("design_task_id", "")
+    if not task_id:
+        return ["development-agent-v1 cards require design_task_id"]
+    task = tasks.get(task_id)
+    if not task:
+        return [f"unknown design_task_id: {task_id}"]
+    if task["status"] != "core":
+        return [f"design_task_id must reference a core task: {task_id}"]
+    if fm.get("design_goal") != task["design_goal"]:
+        errors.append("design_goal must exactly match the decision map task")
+    for field, allowed in (
+        ("required_artifact_types", task["required_artifacts"]),
+        ("failure_risks", task["failure_risks"]),
+    ):
+        values = fm.get(field, [])
+        if not isinstance(values, list) or not values:
+            errors.append(f"development-agent-v1 cards require non-empty {field}")
+            continue
+        unknown_values = sorted(set(values) - set(allowed))
+        if unknown_values:
+            errors.append(f"{field} not allowed by design task: {', '.join(unknown_values)}")
+    return errors
+
+
+def validate(path, decision_map_path=None):
     """Return (errors, warnings) for a card file."""
     errors = []
     warnings = []
@@ -134,6 +273,7 @@ def validate(path):
             for heading in PROCEDURE_SUBSECTIONS:
                 if not section_has_content(body, heading):
                     errors.append(f"missing or empty Procedure subsection: {heading}")
+        errors.extend(validate_decision_map_binding(fm, decision_map_path_for_card(path, decision_map_path)))
 
     # 3. Options >= 3
     opt_count = count_options(body)

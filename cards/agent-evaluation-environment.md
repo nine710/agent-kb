@@ -4,6 +4,10 @@ card_contract: development-agent-v1
 consumer: development-agent
 decision_scope: evaluation
 option_relationship: composable
+design_task_id: evaluation-and-observability-architecture
+design_goal: 让 Agent 的能力、失败模式和改进结果得到可信验证。
+required_artifact_types: [evaluation-matrix]
+failure_risks: [invalid-evaluation-conclusion]
 problem: Agent 应在工具调用环境、人机交互环境还是仿真环境中评估？
 tags: [evaluation, benchmarks, simulation, observability]
 when_to_use: 需要为 Agent 设计可重复的能力验证环境，并决定评价重点是工具结果、交互质量还是逼真世界动态时。
