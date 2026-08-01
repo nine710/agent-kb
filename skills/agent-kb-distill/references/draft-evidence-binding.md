@@ -9,6 +9,7 @@ The draft frontmatter must contain:
 ```yaml
 source_id: src-NNN
 candidate_id: CAND-NNN
+design_task_id: <core-task-id>  # required for published v1 candidates
 status: draft | published | raw-only | out-of-scope | rejected
 published_card: cards/card-id.md  # required only for published
 decision_reason: <required for raw-only, out-of-scope, and rejected>
@@ -47,3 +48,8 @@ For `development-agent-v1`, the sidecar must additionally bind all six labels:
 
 Use supported claims for direct source facts. A development-Agent action derived
 from those facts uses an inferred claim with a complete `inference_chain`.
+
+For a published v1 candidate, bind the chosen design task, copied design goal,
+required artifact types, and failure risks in the draft frontmatter. The
+sidecar continues to bind the Procedure to source claims; map alignment and
+proposal evidence remain in `derived/`, not in public cards.

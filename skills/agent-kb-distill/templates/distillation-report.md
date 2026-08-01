@@ -11,6 +11,16 @@
 | Unit | Status | Notes |
 |---|---|---|
 
+## Decision Map Coverage
+
+| Design Task | Map Status | Source Claims | Cards / Gaps | Change |
+|---|---|---|---|---|
+
+## Existing Card Review
+
+| Card | Decision | Claim Evidence | Reason | Next Action |
+|---|---|---|---|---|
+
 ## Published Cards
 
 | Card | Decision | Evidence |

@@ -5,7 +5,7 @@ description: Distill a human-selected project, document set, paper, PDF, HTML ar
 
 # Agent KB Distill
 
-Use this Skill only inside an `agent-kb` repository. Read `SCHEMA.md`, `raw/sources.md`, existing `cards/`, and the references below before creating or changing cards.
+Use this Skill only inside an `agent-kb` repository. Read `DECISION-MAP.md`, `SCHEMA.md`, `raw/sources.md`, existing `cards/`, and the references below before creating or changing cards.
 
 ## Boundaries
 
@@ -21,17 +21,19 @@ Use this Skill only inside an `agent-kb` repository. Read `SCHEMA.md`, `raw/sour
 2. Create `derived/manifest.md`, `inventory.md`, and `progress.md` from the templates. Inventory every source unit and assign an extraction reliability rating.
 3. Follow [extraction and locator rules](references/extraction-and-locator-rules.md). Preserve source locations; do not let low-reliability text independently support publication.
 4. Read all inventoried, in-scope units. Write one claim per row in `derived/evidence-ledger.md` using [the ledger schema](references/evidence-ledger-schema.md).
-5. Create `derived/candidate-problems.md` using [the candidate schema](references/candidate-problem-schema.md). Compare every candidate against existing cards semantically.
-6. For every candidate, create `drafts/<source_id>/<candidate-id>-<slug>.md` and its matching `.evidence.md` sidecar using [draft binding rules](references/draft-evidence-binding.md). Set the lifecycle status to `draft` while analysis is incomplete; use `raw-only`, `out-of-scope`, or `rejected` with a decision reason when a candidate is withheld.
-7. For a candidate targeting `development-agent-v1`, perform the Development-Agent adaptation stage: define consumer, decision scope, option relationship, all six Procedure fields, and evidence bindings. Create one public `typical`, `boundary`, and `anti-pattern` evaluation task under `eval/development-agent/<card-id>/`. A reviewer must record a real development-Agent answer against every task rubric before `review_status: pass` is valid.
-8. Apply [publication gates](references/publication-gates.md). Only a `published` draft may produce or update a file in `cards/`; set its `published_card` link after the active card exists. Run both validation commands before treating the source as complete:
+5. Align all in-scope claim groups to `DECISION-MAP.md` before discovering candidates. Create `derived/decision-map-alignment.md`; source chapters never determine cards by themselves.
+6. Create `derived/map-change-proposals.md` and `derived/card-review.md`. Claims that cannot fit a Core task need an add/split/merge/exclude proposal; reassess every affected active card as keep, update, split, merge, or deprecate.
+7. Create `derived/candidate-problems.md` using [the candidate schema](references/candidate-problem-schema.md). Every candidate identifies its Core design task or an explicit emerging/excluded mapping reason. Compare every candidate against existing cards semantically.
+8. For every candidate, create `drafts/<source_id>/<candidate-id>-<slug>.md` and its matching `.evidence.md` sidecar using [draft binding rules](references/draft-evidence-binding.md). Set the lifecycle status to `draft` while analysis is incomplete; use `raw-only`, `out-of-scope`, or `rejected` with a decision reason when a candidate is withheld.
+9. For a candidate targeting `development-agent-v1`, perform the Development-Agent adaptation stage: define consumer, decision scope, option relationship, design-task binding, all six Procedure fields, and evidence bindings. Create one public `typical`, `boundary`, and `anti-pattern` evaluation task under `eval/development-agent/<card-id>/`. A reviewer must record a real development-Agent answer against every task rubric before `review_status: pass` is valid.
+10. Apply [publication gates](references/publication-gates.md). Only a `published` draft may produce or update a file in `cards/`; set its `published_card` link after the active card exists. Run both validation commands before treating the source as complete:
 
    ```text
    python scripts/validate_distillation.py <source-package> --drafts drafts --cards cards
    python scripts/validate_card.py --all
    ```
 
-9. Write `derived/distillation-report.md`. Include coverage, published cards, consumer contract/readiness, all withheld candidates, archive paths, conflicts, reliability issues, and source suggestions.
+11. Write `derived/distillation-report.md`. Include decision-map coverage and changes, existing-card review decisions, published cards, consumer contract/readiness, all withheld candidates, archive paths, conflicts, reliability issues, and source suggestions.
 
 ## Archive lifecycle
 
@@ -69,6 +71,13 @@ derived from source facts must bind to an inferred claim with a complete
 `inference_chain`; do not present it as a direct source conclusion. Do not mark
 a v1 task as passed merely because it exists: the Review Record must reflect a
 development Agent's actual answer and reviewer scoring.
+
+## Decision-map discipline
+
+- Start from a development responsibility in `DECISION-MAP.md`, then ask which source claims support reusable problems below it. Do not turn a chapter title, model term, or algorithm name into a card merely because it appears in the material.
+- A candidate must state its trigger, design goal, required artifacts, independent failure risks, true options, and deduplication conclusion.
+- A new long-lived responsibility is a map proposal, not an automatic Core task. It needs source claims, an explanation of why it cannot fit an existing task, independent artifacts and risks, at least two child-problem candidates, and a maturity statement.
+- Keep `emerging` and `excluded` discoveries in local archives. Only a Core task may be referenced by a formal v1 card.
 
 ## Resume
 

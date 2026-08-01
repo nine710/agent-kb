@@ -4,6 +4,10 @@ card_contract: development-agent-v1
 consumer: development-agent
 decision_scope: agent-runtime-architecture
 option_relationship: exclusive
+design_task_id: <core-task-id>
+design_goal: <必须逐字复制 DECISION-MAP.md 中任务的目标>
+required_artifact_types: [<任务允许的工件类型>]
+failure_risks: [<任务允许的失败风险>]
 problem: <一句话设计决策问题>
 tags: [<主题标签>]
 when_to_use: <什么场景下会遇到>
