@@ -8,4 +8,6 @@
 - generated_at:
 - input_fingerprint:
 - derived_version:
+- archive_status: not-started
+- archived_candidates:
 - downstream_invalidated: false

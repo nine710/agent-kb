@@ -13,4 +13,4 @@ Publish only after all gates pass:
 9. The card contains no personal project experience.
 10. Sources expose stable, human-readable locations.
 
-When a gate fails, keep the result out of `cards/` and record its status and reason in the candidate queue and report.
+When a gate fails, keep the result out of `cards/`, retain the draft and evidence sidecar, and record `raw-only`, `out-of-scope`, or `rejected` plus a concrete `decision_reason` in the archive, candidate queue, and report. A candidate already covered by an existing active card is archived as `published` with a `published_card` link.

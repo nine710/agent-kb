@@ -43,6 +43,13 @@
 | 4 | 源可追溯 | 每条内容可回溯到 sources |
 | 5 | problem 可复用 | 可反复遇到的设计问题 |
 
+## 本地蒸馏档案
+
+- `drafts/<source_id>/`：永久保留的来源级候选档案，不进入公开仓库。每个候选必须有一份草稿和一份 `.evidence.md` sidecar。
+- 草稿 frontmatter 必须包含 `source_id`、`candidate_id` 和生命周期状态：`draft`、`published`、`raw-only`、`out-of-scope` 或 `rejected`。
+- `published` 必须有 `published_card`，且目标正式卡 `status: active`；其他状态必须记录 `decision_reason`，且不得设置 `published_card`。
+- 草稿不会因发布或拒绝而删除；正式卡只存在于公开的 `cards/`。
+
 ## raw/ 原材料与摘录规范
 
 - `raw/sources.md`：公开，必读源索引

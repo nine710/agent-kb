@@ -40,26 +40,33 @@ def read_markdown_table(path):
     return []
 
 
-def draft_files(drafts_dir):
-    if not drafts_dir.exists():
+VALID_DRAFT_STATUSES = {"draft", "published", "raw-only", "out-of-scope", "rejected"}
+
+
+def draft_files(drafts_dir, source_id):
+    source_drafts = Path(drafts_dir) / source_id
+    if not source_drafts.exists():
         return []
     return sorted(
         path
-        for path in drafts_dir.glob("*.md")
-        if not path.name.endswith(".evidence.md")
+        for path in source_drafts.rglob("*.md")
+        if path.is_file() and not path.name.endswith(".evidence.md")
+    )
+
+
+def evidence_files(drafts_dir, source_id):
+    source_drafts = Path(drafts_dir) / source_id
+    if not source_drafts.exists():
+        return []
+    return sorted(
+        path
+        for path in source_drafts.rglob("*.evidence.md")
+        if path.is_file()
     )
 
 
 def metadata(text):
     return {key: value.strip() for key, value in KEY_VALUE_RE.findall(text)}
-
-
-def card_source_ids(path):
-    text = path.read_text(encoding="utf-8")
-    match = re.search(r"^source_ids:\s*\[([^\]]*)\]", text, re.MULTILINE)
-    if not match:
-        return []
-    return [item.strip() for item in match.group(1).split(",") if item.strip()]
 
 
 def candidate_records(path):
@@ -96,6 +103,61 @@ def frontmatter_value(path, key):
     return match.group(1).strip() if match else ""
 
 
+def published_card_path(value, cards_dir):
+    if not value:
+        return None
+    target = Path(value)
+    if target.suffix != ".md":
+        target = target.with_suffix(".md")
+    if not target.is_absolute():
+        cards_dir = Path(cards_dir)
+        if target.parts and target.parts[0] == cards_dir.name:
+            target = cards_dir.parent / target
+        else:
+            target = cards_dir / target
+    return target
+
+
+def validate_draft_lifecycle(draft, draft_metadata, candidate, cards_dir):
+    errors = []
+    status = draft_metadata.get("status", "")
+    published_card = draft_metadata.get("published_card", "")
+    decision_reason = draft_metadata.get("decision_reason", "")
+    candidate_id = draft_metadata.get("candidate_id", "")
+
+    if status not in VALID_DRAFT_STATUSES:
+        errors.append(f"unknown draft status for {draft.name}: {status or '<empty>'}")
+        return errors
+
+    if status == "published":
+        if not published_card:
+            errors.append(f"published draft must set published_card: {draft.name}")
+        else:
+            card = published_card_path(published_card, cards_dir)
+            if not card.is_file():
+                errors.append(f"published card does not exist for {candidate_id}: {published_card}")
+            elif frontmatter_value(card, "status") != "active":
+                errors.append(f"published card must have active status: {card.name}")
+    elif published_card:
+        errors.append(f"non-published draft must not set published_card: {draft.name}")
+
+    if status in {"raw-only", "out-of-scope", "rejected"} and not decision_reason:
+        errors.append(f"{status} draft must include decision_reason: {draft.name}")
+
+    if status == "raw-only" and candidate.get("three_way_assessment") == "pass":
+        errors.append(f"raw-only candidate must not have three_way_assessment: pass: {candidate_id}")
+
+    candidate_status = candidate.get("status", "")
+    terminal_statuses = {"raw-only", "out-of-scope", "rejected"}
+    if candidate_status in terminal_statuses and status != candidate_status:
+        errors.append(
+            f"draft status must match candidate status for {candidate_id}: "
+            f"{candidate_status} requires {candidate_status}, got {status}"
+        )
+
+    return errors
+
+
 def validate_package(package_root, drafts_dir, cards_dir):
     package_root = Path(package_root)
     drafts_dir = Path(drafts_dir)
@@ -130,8 +192,32 @@ def validate_package(package_root, drafts_dir, cards_dir):
     if not claims:
         errors.append("evidence-ledger.md must contain a claim table")
 
-    for draft in draft_files(drafts_dir):
-        if source_id not in card_source_ids(draft):
+    source_drafts = draft_files(drafts_dir, source_id)
+    source_evidence = evidence_files(drafts_dir, source_id)
+    source_draft_stems = {path.stem for path in source_drafts}
+    source_evidence_stems = {path.name[: -len(".evidence.md")] for path in source_evidence}
+    for orphan in sorted(source_evidence_stems - source_draft_stems):
+        errors.append(f"orphan evidence sidecar: {orphan}.evidence.md")
+    for path in sorted(Path(drafts_dir).glob("*.md")):
+        errors.append(f"unscoped draft archive outside {source_id}: {path.name}")
+    for path in sorted(Path(drafts_dir).glob("*.evidence.md")):
+        errors.append(f"unscoped evidence sidecar outside {source_id}: {path.name}")
+
+    candidate_drafts = {}
+    for draft in source_drafts:
+        draft_metadata = metadata(draft.read_text(encoding="utf-8"))
+        draft_source_id = draft_metadata.get("source_id", "")
+        if draft_source_id != source_id:
+            errors.append(f"{draft.name} must declare source_id: {source_id}")
+            continue
+        candidate_id = draft_metadata.get("candidate_id", "")
+        if not candidate_id:
+            errors.append(f"draft must declare candidate_id: {draft.name}")
+            continue
+        candidate_drafts.setdefault(candidate_id, []).append(draft)
+        candidate = candidates.get(candidate_id)
+        if candidate is None:
+            errors.append(f"draft references missing candidate: {candidate_id}")
             continue
         sidecar = draft.with_name(f"{draft.stem}.evidence.md")
         if not sidecar.is_file():
@@ -141,15 +227,10 @@ def validate_package(package_root, drafts_dir, cards_dir):
         if sidecar_metadata.get("source_id") != source_id:
             errors.append(f"{sidecar.name} must declare source_id: {source_id}")
             continue
-        candidate_id = sidecar_metadata.get("candidate_id", "")
-        candidate = candidates.get(candidate_id)
-        if candidate is None:
-            errors.append(f"{sidecar.name} references missing candidate: {candidate_id or '<empty>'}")
+        if sidecar_metadata.get("candidate_id") != candidate_id:
+            errors.append(f"{sidecar.name} candidate_id does not match draft: {candidate_id}")
             continue
-        if candidate.get("status") != "new":
-            errors.append(f"{sidecar.name} references non-publishable candidate {candidate_id}: {candidate.get('status', '<empty>')}")
-        if candidate.get("three_way_assessment") != "pass":
-            errors.append(f"{sidecar.name} candidate {candidate_id} lacks three_way_assessment: pass")
+        errors.extend(validate_draft_lifecycle(draft, draft_metadata, candidate, cards_dir))
         if not bindings or not any(claim_ids for _, claim_ids in bindings):
             errors.append(f"evidence sidecar has no claim IDs: {sidecar.name}")
             continue
@@ -169,9 +250,12 @@ def validate_package(package_root, drafts_dir, cards_dir):
                 if status == "inferred" and not claim.get("inference_chain", ""):
                     errors.append(f"inferred claim lacks inference_chain: {claim_id}")
 
-        published = cards_dir / draft.name
-        if published.is_file() and frontmatter_value(published, "status") != "active":
-            errors.append(f"published card must have active status: {published.name}")
+    for candidate_id in candidates:
+        matching = candidate_drafts.get(candidate_id, [])
+        if not matching:
+            errors.append(f"missing draft archive for candidate: {candidate_id}")
+        elif len(matching) > 1:
+            errors.append(f"duplicate candidate_id in draft archives: {candidate_id}")
 
     return errors
 

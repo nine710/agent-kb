@@ -13,3 +13,4 @@
 - input_fingerprint:
 - created_at:
 - status: not-started
+- draft_archive: drafts/<source_id>/

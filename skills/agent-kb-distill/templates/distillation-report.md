@@ -16,6 +16,11 @@
 | Card | Decision | Evidence |
 |---|---|---|
 
+## Archive Coverage
+
+| Candidate | Draft | Status | Decision Reason |
+|---|---|---|---|
+
 ## Withheld Candidates
 
 | Candidate | Status | Reason | Next Action |

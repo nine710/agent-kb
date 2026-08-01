@@ -20,6 +20,8 @@ def write_package(
     reliability="high",
     candidate_status="new",
     inference_chain="",
+    candidate_id="candidate-three-way",
+    three_way_assessment="pass",
 ):
     derived = root / "derived"
     derived.mkdir(parents=True)
@@ -35,20 +37,41 @@ def write_package(
     )
     (derived / "candidate-problems.md").write_text(
         "# Candidate Problems\n\n"
-        "## candidate-three-way\n\n"
+        f"## {candidate_id}\n\n"
         f"status: {candidate_status}\n\n"
         "claim_refs: CLM-001\n\n"
-        "three_way_assessment: pass\n",
+        f"three_way_assessment: {three_way_assessment}\n",
         encoding="utf-8",
     )
     (derived / "distillation-report.md").write_text("# Distillation Report\n\nstatus: completed\n", encoding="utf-8")
 
 
-def write_draft(drafts: Path, source_id="src-001", candidate_id="candidate-three-way"):
-    (drafts / "example.md").write_text(
-        f"---\nid: example\nsource_ids: [{source_id}]\n---\n", encoding="utf-8"
+def write_draft(
+    drafts: Path,
+    source_id="src-001",
+    candidate_id="candidate-three-way",
+    status="published",
+    published_card="example",
+    decision_reason="",
+    filename="example",
+):
+    source_drafts = drafts / source_id
+    source_drafts.mkdir(parents=True, exist_ok=True)
+    published_line = f"published_card: {published_card}\n" if published_card else ""
+    reason_line = f"decision_reason: {decision_reason}\n" if decision_reason else ""
+    (source_drafts / f"{filename}.md").write_text(
+        "---\n"
+        f"id: {filename}\n"
+        f"source_id: {source_id}\n"
+        f"source_ids: [{source_id}]\n"
+        f"candidate_id: {candidate_id}\n"
+        f"status: {status}\n"
+        f"{published_line}"
+        f"{reason_line}"
+        "---\n",
+        encoding="utf-8",
     )
-    (drafts / "example.evidence.md").write_text(
+    (source_drafts / f"{filename}.evidence.md").write_text(
         "# Evidence Binding\n\n"
         f"source_id: {source_id}\n"
         f"candidate_id: {candidate_id}\n\n"
@@ -68,7 +91,127 @@ class ValidateDistillationTests(unittest.TestCase):
             cards.mkdir()
             write_package(root)
             write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
             self.assertEqual([], validator.validate_package(root, drafts, cards))
+
+    def test_accepts_all_lifecycle_states(self):
+        validator = load_validator()
+        for status in ("draft", "published", "raw-only", "out-of-scope", "rejected"):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as temp_dir:
+                root = Path(temp_dir) / "src-001-example"
+                drafts = Path(temp_dir) / "drafts"
+                cards = Path(temp_dir) / "cards"
+                drafts.mkdir()
+                cards.mkdir()
+                candidate_id = f"candidate-{status}"
+                candidate_status = "new" if status in {"draft", "published"} else status
+                assessment = "pass" if status in {"draft", "published"} else "fail"
+                write_package(
+                    root,
+                    candidate_id=candidate_id,
+                    candidate_status=candidate_status,
+                    three_way_assessment=assessment,
+                )
+                write_draft(
+                    drafts,
+                    candidate_id=candidate_id,
+                    status=status,
+                    published_card="example" if status == "published" else "",
+                    decision_reason="withheld by scope" if status not in {"draft", "published"} else "",
+                    filename=status,
+                )
+                if status == "published":
+                    (cards / "example.md").write_text(
+                        "---\nid: example\nstatus: active\n---\n", encoding="utf-8"
+                    )
+                self.assertEqual([], validator.validate_package(root, drafts, cards))
+
+    def test_rejects_published_draft_without_published_card(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts, published_card="")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("published_card" in error for error in errors))
+
+    def test_rejects_non_published_draft_with_published_card(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts, status="raw-only", published_card="example", decision_reason="only two paths")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("must not set published_card" in error for error in errors))
+
+    def test_rejects_unknown_draft_status(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts, status="archived", published_card="", decision_reason="legacy")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("unknown draft status" in error for error in errors))
+
+    def test_rejects_orphan_candidate_and_duplicate_archive(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            write_draft(drafts, filename="duplicate")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("duplicate candidate_id" in error for error in errors))
+
+    def test_rejects_candidate_without_archive(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("missing draft archive" in error for error in errors))
+
+    def test_rejects_sidecar_with_mismatched_candidate_id(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            sidecar = drafts / "src-001" / "example.evidence.md"
+            sidecar.write_text(
+                "# Evidence Binding\n\n"
+                "source_id: src-001\n"
+                "candidate_id: candidate-other\n\n"
+                "- Option A: CLM-001\n",
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("candidate_id does not match draft" in error for error in errors))
 
     def test_rejects_draft_bound_to_unsupported_claim(self):
         validator = load_validator()
@@ -80,6 +223,7 @@ class ValidateDistillationTests(unittest.TestCase):
             cards.mkdir()
             write_package(root, support_status="unsupported")
             write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
             errors = validator.validate_package(root, drafts, cards)
             self.assertTrue(any("CLM-001" in error and "unsupported" in error for error in errors))
 
@@ -92,8 +236,11 @@ class ValidateDistillationTests(unittest.TestCase):
             drafts.mkdir()
             cards.mkdir()
             write_package(root)
-            (drafts / "example.md").write_text(
-                "---\nid: example\nsource_ids: [src-001]\n---\n", encoding="utf-8"
+            source_drafts = drafts / "src-001"
+            source_drafts.mkdir()
+            (source_drafts / "example.md").write_text(
+                "---\nid: example\nsource_id: src-001\nsource_ids: [src-001]\ncandidate_id: candidate-three-way\nstatus: published\npublished_card: example\n---\n",
+                encoding="utf-8",
             )
             errors = validator.validate_package(root, drafts, cards)
             self.assertTrue(any("example.evidence.md" in error for error in errors))
@@ -108,6 +255,7 @@ class ValidateDistillationTests(unittest.TestCase):
             cards.mkdir()
             write_package(root, reliability="low")
             write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
             errors = validator.validate_package(root, drafts, cards)
             self.assertTrue(any("CLM-001" in error and "low-reliability" in error for error in errors))
 
@@ -120,17 +268,12 @@ class ValidateDistillationTests(unittest.TestCase):
             drafts.mkdir()
             cards.mkdir()
             write_package(root)
-            write_draft(drafts, source_id="src-002", candidate_id="candidate-other")
-            (drafts / "example.evidence.md").write_text(
-                "# Evidence Binding\n\n"
-                "source_id: src-002\n"
-                "candidate_id: candidate-other\n\n"
-                "- Option A: CLM-999\n",
-                encoding="utf-8",
-            )
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            write_draft(drafts, source_id="src-002", candidate_id="candidate-other", published_card="", filename="foreign")
             self.assertEqual([], validator.validate_package(root, drafts, cards))
 
-    def test_rejects_draft_bound_to_raw_only_candidate(self):
+    def test_rejects_published_draft_bound_to_raw_only_candidate(self):
         validator = load_validator()
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir) / "src-001-example"
@@ -138,8 +281,9 @@ class ValidateDistillationTests(unittest.TestCase):
             cards = Path(temp_dir) / "cards"
             drafts.mkdir()
             cards.mkdir()
-            write_package(root, candidate_status="raw-only")
-            write_draft(drafts)
+            write_package(root, candidate_status="raw-only", three_way_assessment="fail")
+            write_draft(drafts, status="published")
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
             errors = validator.validate_package(root, drafts, cards)
             self.assertTrue(any("candidate-three-way" in error and "raw-only" in error for error in errors))
 
@@ -153,6 +297,7 @@ class ValidateDistillationTests(unittest.TestCase):
             cards.mkdir()
             write_package(root, support_status="inferred", inference_chain="CLM-002")
             write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
             errors = validator.validate_package(root, drafts, cards)
             self.assertTrue(any("Option A" in error and "supported" in error for error in errors))
 

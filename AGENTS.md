@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **源可追溯**——每个选项、每条权衡、每条应用规则都必须能回溯到 `Sources` 中的具体源；优先使用 **markdown 章节号**，其他材料使用可复核的源原生定位（文件位置、锚点或页码）。
 4. **问题可复用**——`problem` 是可反复遇到的设计问题模板，不绑定某一篇文章或某一本书。
 5. **非摘要**——产出的是决策单元（问题 + 选项 + 权衡），不是文章或书籍的读后感式摘要。
-6. **公开边界**——`raw/src-NNN-<source-slug>/`（每个来源的原材料、派生分析和 fair-use 摘录）与 `drafts/`（未过门草稿）必须被 `.gitignore` 排除，**永不进公开仓库**。
+6. **公开边界**——`raw/src-NNN-<source-slug>/`（每个来源的原材料、派生分析和 fair-use 摘录）与 `drafts/`（永久本地候选档案）必须被 `.gitignore` 排除，**永不进公开仓库**。
 
 草稿进 `cards/` 前，还必须逐条过对抗审查清单（见 `SCHEMA.md`，共 5 条：真三叉、非摘要、零个人经验、源可追溯、问题可复用）。
 
@@ -34,7 +34,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `SCHEMA.md` | 卡片 schema + 对抗审查清单 + 摘录规范 | ✅ |
 | `raw/sources.md` | 必读源索引（源 ID + 章节→问题映射 + raw-only 问题标注） | ✅ |
 | `raw/src-NNN-<source-slug>/` | 一个来源的本地材料包：`source/` 放原始材料，`derived/` 放台账/候选/报告，`excerpts/` 放 fair-use 短摘录（单条 ≤500 字、单源 ≤2000 字） | ❌ gitignore |
-| `drafts/` | 未过门的草稿卡（`status: draft`） | ❌ gitignore |
+| `drafts/<source_id>/` | 永久保留的候选草稿与 evidence sidecar；状态为 `draft` / `published` / `raw-only` / `out-of-scope` / `rejected` | ❌ gitignore |
 | `scripts/validate_card.py` | 卡片 schema 验证脚本（Python 标准库 only） | ✅ |
 
 ### `raw/` 的来源材料包约定
@@ -60,11 +60,11 @@ raw/
 
 ```
 人工选择来源
-  → Agent 通过 skills/agent-kb-distill/ 建立 raw/src-NNN-<source-slug>/{source,derived,excerpts}
+  → Agent 建立 raw/src-NNN-<source-slug>/{source,derived,excerpts} 与 drafts/<source_id>/
   → Agent 完整审读、建立证据台账、发现候选并语义去重
-  → drafts/ + evidence sidecar
+  → 每个候选建立草稿 + evidence sidecar，并记录生命周期状态
   → Agent 对抗审查、来源预检和 card schema 验证
-  → cards/
+  → 仅 published 候选进入 cards/；其余状态永久留存并记录原因
 ```
 
 人工只选择来源；Agent 自主发现问题、草拟、审查和本地发布。Skill 不执行 Git 操作；项目开发流程单独负责提交和推送。
@@ -83,7 +83,7 @@ python scripts/validate_card.py cards/<card>.md   # 验证单张卡
 python scripts/validate_card.py --all             # 验证所有正式卡
 ```
 
-验证器包括 `scripts/validate_card.py` 与 `scripts/validate_distillation.py`。前者检查正式卡结构；后者检查来源包、证据台账、草稿 sidecar、进度和报告。每张卡进 `cards/` 前必须通过二者以及 Skill 的语义审查。
+验证器包括 `scripts/validate_card.py` 与 `scripts/validate_distillation.py`。前者检查正式卡结构；后者检查来源包、候选与档案一对一关系、五种生命周期状态、证据 sidecar、进度和报告。每张卡进 `cards/` 前必须通过二者以及 Skill 的语义审查；草稿不会因发布或拒绝而删除。
 
 ## 源材料工作流
 
@@ -100,4 +100,4 @@ python scripts/validate_card.py --all             # 验证所有正式卡
 - 蒸馏时**以源材料的术语和概念为准**；源中未必有 Claude Code 特有术语（如 hooks / constitution），在 `Apply to Agent Development` 中映射到编程智能体术语即可，但每个选项必须有源支撑——书中无支撑的候选**必须替换**，不可凭空编造。
 - Git：本仓库是 git 仓库，远端 `nine710/agent-kb`（Public，SSH remote `git@github.com:nine710/agent-kb.git`），用户已授权自动 commit + push。**推送走 SSH 密钥认证（不经 PAT）+ Clash 代理**（HTTPS/PAT 推送会 403——fine-grained `GITHUB_PAT_TOKEN` 未覆盖此仓库的写权限；SSH 密钥已注册且可用）：`GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand='connect -H 127.0.0.1:7897 %h %p'" git push`。GitHub 直连被墙，git/HTTP 操作走 Clash 代理 `127.0.0.1:7897`（已写入 Claude Code settings.json `env`）。本地 `planning/`（方案/计划）、`CLAUDE.md`、`AGENTS.md`、`.gitignore` 均被 gitignore、**不入公开仓库**；公开仓库只含知识库产出（`cards/` `SCHEMA.md` `templates/` `raw/sources.md` `scripts/` `README.md`）。
 - v0 不做的事：消费侧 design-time skill（用户自行构建）、个人经验入卡（永久不做）。
-- Phase 1（骨架）与 v0 蒸馏**已全部完成并推送至 GitHub**：`SCHEMA.md`、`scripts/validate_card.py`、`templates/card.md`、`raw/sources.md`、`README.md`、`.gitignore` 均已就位；`cards/` 含 2 张正式卡（`constraint-placement`、`context-loading-strategy`，`validate_card.py --all` 双 PASS）；`raw/sources.md` 含 1 个 raw-only 标注。
+- Phase 1（骨架）与 `src-001` 首轮蒸馏**已完成**：`SCHEMA.md`、`scripts/validate_card.py`、`scripts/validate_distillation.py`、`templates/card.md`、`raw/sources.md`、`README.md`、`.gitignore` 和统一蒸馏 Skill 均已就位；`cards/` 含 6 张正式卡，来源包派生档案与候选生命周期档案保留在本地。

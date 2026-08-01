@@ -1,14 +1,17 @@
 ---
 id: <kebab-case-slug>
+source_id: src-001
+candidate_id: CAND-001
 problem: <一句话设计决策问题>
 tags: [<主题标签>]
 when_to_use: <什么场景下会遇到>
 when_not: <什么场景不适用>
 status: draft
 source_ids: [src-001]
+published_card: cards/<kebab-case-slug>.md
 ---
 
-<!-- Drafts require a sibling <id>.evidence.md sidecar before publication. -->
+<!-- Local archive drafts require a sibling <candidate-id>-<slug>.evidence.md sidecar. -->
 
 ## Options
 
