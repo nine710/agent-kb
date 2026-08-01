@@ -8,9 +8,9 @@ design_task_id: context-and-state-architecture
 design_goal: 让 Agent 在任务全过程获得正确、足够、可恢复的信息。
 required_artifact_types: [context-layering-table]
 failure_risks: [context-corruption]
-problem: Agent 完成任务所需的信息与知识应放在哪一层——常驻静态上下文、按需加载、运行时压缩，还是外部化（RAG / 子 Agent 隔离）？
+problem: 如何设计 Agent 的上下文架构，使稳定规则、项目知识、工具轨迹和大规模探索结果在信息充分性、成本与可恢复性之间取得平衡？
 tags: [context-engineering, skills, compression, rag, memory]
-when_to_use: 设计 Agent 的上下文供给时，需要在"信息充分性"与"上下文窗口 / 成本 / 注意力"之间权衡，决定某类信息（指令、领域知识、工具结果、历史轨迹）以何种形态进入或留在主上下文。
+when_to_use: 设计或评审 Agent 的上下文与状态架构时，需要决定系统提示、项目规则、工具输出、子 Agent 结果、跨会话知识和恢复状态以何种形态进入或留在主上下文。
 when_not: 信息量很小且固定（直接常驻即可，不构成决策）；或属于跨会话的"约束应放哪一层"问题（见 constraint-placement 卡）。
 status: active
 source_ids: [src-001]

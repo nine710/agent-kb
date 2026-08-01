@@ -175,6 +175,11 @@ class ValidateCardContractTests(unittest.TestCase):
             errors, _ = validator.validate(str(path), decision_map_path=str(map_path))
             self.assertTrue(any("required_artifact_types" in error for error in errors))
 
+    def test_context_card_uses_agent_architecture_problem(self):
+        root = Path(__file__).resolve().parents[1]
+        text = (root / "cards" / "context-loading-strategy.md").read_text(encoding="utf-8")
+        self.assertIn("如何设计 Agent 的上下文架构", text)
+
 
 if __name__ == "__main__":
     unittest.main()
