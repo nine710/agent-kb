@@ -8,9 +8,9 @@ design_task_id: knowledge-and-memory-architecture
 design_goal: 让 Agent 获取可追溯、及时且与任务相关的外部知识。
 required_artifact_types: [retrieval-evaluation-set]
 failure_risks: [stale-or-conflicting-knowledge]
-problem: Agent 获取外部知识时应采用稠密检索、稀疏检索、混合检索，还是结构化索引？
+problem: 如何设计 Agent 的知识与记忆获取架构，使语义意图、精确符号、结构关系和知识治理共同决定可追溯的结果？
 tags: [rag, retrieval, knowledge-base, memory]
-when_to_use: 为 Agent 的文档、代码、规范或长期知识设计检索和组织方式，需要平衡语义召回、精确匹配、可解释性和治理时。
+when_to_use: 设计 Agent 的知识与记忆责任时，需要决定文档、代码、规范或长期知识如何组织、检索、定位来源并处理时效与冲突。
 when_not: 知识规模很小、内容固定且可直接放入静态上下文时。
 status: active
 source_ids: [src-001]
@@ -45,11 +45,13 @@ source_ids: [src-001]
 
 ## Apply to Agent Development
 
+- 先把查询按语义改写、精确标识符和结构关系分类，再选择检索信号；把知识治理视为架构输入，而不是检索失败后的补丁。
 - 自然语言需求与原始文档措辞差异大时优先 A；把分块边界设计成可独立理解的知识单元。
 - 查询经常含精确符号、文件路径、函数名或错误码时优先 B。
 - 两类查询都重要且漏检代价高时采用 C，并对融合结果建立评估集，而不是假设混合一定更好。
 - 代码库、设计规范或长期知识存在明确组件关系和目录层级时采用 D，必要时让检索先走结构再读取文本。
 - 无论采用何种检索，都治理时效和冲突；检索质量是知识型 Agent 能力上限的一部分。
+- 每条返回结果都要保留来源、版本和失效状态，使 Agent 的结论可以回链到知识责任边界。
 
 ## Development Agent Procedure
 
@@ -78,6 +80,7 @@ A、B、C 是查询信号层的不同组合：C 组合 A 的语义召回与 B �
 
 ### Verification
 
+- 让评估集覆盖每类查询信号及其组合，并把召回错误归因到分块、索引、融合或治理环节。
 - 用语义改写、精确标识符和结构关系三组查询分别测量召回与错误命中。
 - 对混合检索比较融合前后的结果；没有改进证据时不保留额外复杂度。
 - 用跨主题 chunk、过期文档和冲突条目做反例，确认结果保留来源、版本和冲突状态。

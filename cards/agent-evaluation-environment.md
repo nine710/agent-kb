@@ -8,9 +8,9 @@ design_task_id: evaluation-and-observability-architecture
 design_goal: 让 Agent 的能力、失败模式和改进结果得到可信验证。
 required_artifact_types: [evaluation-matrix]
 failure_risks: [invalid-evaluation-conclusion]
-problem: Agent 应在工具调用环境、人机交互环境还是仿真环境中评估？
+problem: 如何设计 Agent 的评估与可观测性架构，使工具执行、用户协作和长程状态风险都能被复现、归因和比较？
 tags: [evaluation, benchmarks, simulation, observability]
-when_to_use: 需要为 Agent 设计可重复的能力验证环境，并决定评价重点是工具结果、交互质量还是逼真世界动态时。
+when_to_use: 设计 Agent 的评估与可观测性责任时，需要把能力风险映射到可重复的工具、交互或仿真环境，并规定失败如何归因。
 when_not: 只检查 Markdown 格式或单个确定性函数输出时。
 status: active
 source_ids: [src-001]
@@ -40,11 +40,13 @@ source_ids: [src-001]
 
 ## Apply to Agent Development
 
+- 先从一级评估责任拆出主要失败风险，再选择环境；环境不是目的，必须能让失败被观察、归因并与基线比较。
 - 工具操作正确性是主要风险时先用 A，把期望状态和断言设计进环境。
 - 产品价值依赖多轮用户协作时补 B，并把任务描述、用户行为和评价标准显式化。
 - 任务受连续状态、外部动态或长程策略影响时使用 C；先声明需要的保真度，再决定模拟范围。
 - 评估数据集应覆盖任务难度、分布、可验证性和质量控制；环境选择不能替代指标设计。
 - 把评估结果接入可观测性和持续迭代，避免只把 benchmark 分数当作最终结论。
+- 评估矩阵必须同时声明任务分布、观察信号和归因边界，否则分数不能支持能力或改进结论。
 
 ## Development Agent Procedure
 
@@ -73,6 +75,7 @@ A、B、C 可按风险和任务类型组合，而不是互斥基准：A 覆盖�
 
 ### Verification
 
+- 对每个主要失败风险至少安排一条可观测轨迹和一条边界任务，验证环境确实能区分失败原因。
 - 在 A 中断言工具调用、参数和最终状态；不得只评最终自然语言回复。
 - 在 B 中运行分支化用户脚本，检查澄清与终止行为，而非单一理想脚本。
 - 在 C 中改变关键随机条件，确认结论不只适用于单一理想轨迹。

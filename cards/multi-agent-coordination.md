@@ -8,9 +8,9 @@ design_task_id: continuous-improvement-and-collaboration-architecture
 design_goal: 让 Agent 在可验证、可回滚的条件下沉淀经验并协调多方工作。
 required_artifact_types: [coordination-topology]
 failure_risks: [coordination-error-cascade]
-problem: 多 Agent 协作应采用管理者、对等协作还是去中心化移交拓扑？
+problem: 如何设计 Agent 的协作控制架构，使分工、控制权移交、共享工件与错误恢复保持可验证？
 tags: [multi-agent, subagents, coordination, topology]
-when_to_use: 多个 Agent 需要分工、汇总、审查或移交任务，必须决定控制权和信息流由谁协调时。
+when_to_use: 设计 Agent 的协作责任时，任务需要分工、汇总、独立审查或跨专长移交，并且必须明确控制权、信息流和失败恢复。
 when_not: 单 Agent 已能在有限上下文和工具范围内可靠完成任务，拆分只会增加通信成本时。
 status: active
 source_ids: [src-001]
@@ -40,11 +40,13 @@ Agent 根据能力、状态或协议直接把任务移交给下一位合适的�
 
 ## Apply to Agent Development
 
+- 先证明单 Agent 的能力或可验证性不足，再选择控制拓扑；“使用多个 Agent”本身不是架构目标。
 - 任务有明确总计划、资源约束或最终汇总责任时选 A，并让管理者验证关键中间结果。
 - 需要独立审查、互相质疑或多轮改进时选 B，先定义各方的终止条件和裁决规则。
 - 任务流会在不同专长间动态切换时选 C，为移交定义状态、所有权和失败回退。
 - 上下文共享与否是另一条独立决策轴：任何拓扑都可以使用共享上下文或通过文件、消息等工件通信。
 - 无论采用哪种拓扑，都要将共享工件并发、错误传播和控制权移交设计为可观察、可验证的机制。
+- 将控制拓扑与上下文共享、文件/消息接口分开记录，避免把信息流选择误当成控制责任。
 
 ## Development Agent Procedure
 
@@ -73,6 +75,7 @@ A、B、C 是主控制拓扑的互斥选择：一个协作单元必须明确由�
 
 ### Verification
 
+- 用单 Agent 基线和协作路径对照通信成本、可验证性收益与失败传播范围。
 - 演练正常完成、执行者失败、管理者错误、对等分歧或移交超时等路径，确认任务不会丢失、重复或无终止循环。
 - 对共享文件和消息执行并发冲突测试，确认所有权/版本规则会阻止覆盖。
 - 追踪每次控制权转移和关键中间结果，检查错误不会未经验证地级联到下游。

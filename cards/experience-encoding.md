@@ -8,9 +8,9 @@ design_task_id: continuous-improvement-and-collaboration-architecture
 design_goal: 让 Agent 在可验证、可回滚的条件下沉淀经验并协调多方工作。
 required_artifact_types: [experience-release-record]
 failure_risks: [unverified-capability-regression]
-problem: Agent 的运行经验应沉淀为知识、指令、程序还是模型参数？
+problem: 如何设计 Agent 的持续改进发布架构，使运行经验以可验证、可回滚且与风险相称的方式转化为后续能力？
 tags: [continuous-improvement, memory, skills, harness, training]
-when_to_use: Agent 已积累可复用的成功路径、失败模式或运行轨迹，需要决定如何让后续任务受益时。
+when_to_use: 设计 Agent 的持续改进责任时，已经有可复用的运行轨迹、成功路径或失败模式，需要决定经验进入知识、指令、程序还是参数发布链路。
 when_not: 经验尚未验证、无法解释或只是一条偶然的单次轨迹时。
 status: active
 source_ids: [src-001]
@@ -45,11 +45,13 @@ source_ids: [src-001]
 
 ## Apply to Agent Development
 
+- 把经验沉淀当作一次能力发布决策，而不是存储格式选择：先确认证据、适用范围和可回滚责任，再选择承载位。
 - 经验是可检索事实、案例或诊断线索时优先 A。
 - 经验是可语言化的步骤和偏好、但仍需要模型裁量时用 B。
 - 经验可转化为确定性条件、校验或流程时用 C，尤其适合安全和重复性要求高的行为。
 - 只有数据、环境、评估和回滚机制充分时才考虑 D；不要把运行时问题默认升级为训练问题。
 - 每次沉淀前先完成问题定位和验证，发布后保留回滚通道；完成一次任务不等于能力真正提升。
+- 经验发布记录必须同时说明改进目标、潜在回归和停止发布条件，避免把不可验证的轨迹变成永久能力。
 
 ## Development Agent Procedure
 
@@ -78,6 +80,7 @@ A 到 D 是按可执行性和发布风险分层的沉淀位：A 供检索使用�
 
 ### Verification
 
+- 将发布前后的代表性、边界和回归任务纳入同一评估矩阵，并把结果绑定到版本和回滚记录。
 - 在代表性和边界任务上比较沉淀前后的结果，确认改进可复现且没有扩大副作用。
 - 对 A/B 检查来源、适用范围和失效条件；对 C 执行允许/拒绝测试；对 D 只在隔离评估通过后逐步发布。
 - 演练回滚，确认可撤回知识、指令、规则或模型版本。
