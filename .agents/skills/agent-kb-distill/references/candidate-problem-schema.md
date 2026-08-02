@@ -13,6 +13,8 @@ Each candidate section uses a stable ID and includes:
 - `target_contract`: `decision-card-v0` during migration, or `development-agent-v1` when the candidate will include a consumer Procedure and three evaluation tasks.
 - `decision_scope`: required for `development-agent-v1`; one of the formal card scope values.
 - `option_relationship`: required for `development-agent-v1`; states whether its options are exclusive, composable, layered, sequential, or composable by information type.
+- `card_type`: required for `development-agent-v1`; `atomic-decision` or `composition-strategy`.
+- `benchmark_task_ids`: independent benchmark tasks that expose or exercise this decision; card-specific tasks do not count as utility evidence.
 - `claim_refs`: evidence ledger claim IDs.
 - `three_way_assessment`: `pass` only when three mechanisms, layers, or topologies are genuinely distinct.
 - `options`: the three or more paths and their supporting claim IDs.

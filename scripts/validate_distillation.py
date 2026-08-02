@@ -84,6 +84,7 @@ CRITICAL_RUBRIC_IDS = {
 REQUIRED_DIFFICULTIES = {"typical", "boundary", "anti-pattern"}
 VALID_MAPPING_STATUSES = {"mapped", "emerging", "excluded"}
 VALID_CARD_REVIEW_DECISIONS = {"keep", "update", "split", "merge", "deprecate", "none"}
+VALID_CARD_TYPES = {"atomic-decision", "composition-strategy"}
 
 
 def draft_files(drafts_dir, source_id):
@@ -399,6 +400,11 @@ def validate_package(package_root, drafts_dir, cards_dir):
     for candidate_id, candidate in candidates.items():
         task_id = candidate.get("design_task_id", "")
         if task_id:
+            if candidate.get("status") in {"new", "merge-with-existing"}:
+                if candidate.get("card_type") not in VALID_CARD_TYPES:
+                    errors.append(f"publishable candidate missing valid card_type: {candidate_id}")
+                if not candidate.get("benchmark_task_ids"):
+                    errors.append(f"publishable candidate missing benchmark_task_ids: {candidate_id}")
             if core_tasks is not None and (
                 task_id not in core_tasks or core_tasks[task_id].get("status") != "core"
             ):
@@ -475,7 +481,14 @@ def validate_package(package_root, drafts_dir, cards_dir):
             if card and card.is_file():
                 card_metadata = metadata(card.read_text(encoding="utf-8"))
                 if card_metadata.get("card_contract") == DEVELOPMENT_AGENT_CONTRACT:
-                    for field in ("design_task_id", "design_goal", "required_artifact_types", "failure_risks"):
+                    for field in (
+                        "design_task_id",
+                        "design_goal",
+                        "required_artifact_types",
+                        "failure_risks",
+                        "card_type",
+                        "utility_status",
+                    ):
                         if not draft_metadata.get(field):
                             errors.append(f"v1 draft missing {field}: {draft.name}")
                         elif draft_metadata.get(field) != card_metadata.get(field):
