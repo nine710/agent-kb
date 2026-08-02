@@ -36,7 +36,7 @@ python scripts/sync_project_skill.py sync
 python scripts/sync_project_skill.py check
 ```
 
-蒸馏顺序：人工选源 → 建立材料包和进度 → 完整审读并建立 evidence ledger → 对齐 `DECISION-MAP.md` → 发现候选并语义去重 → 建草稿和 sidecar → 对抗审查与验证 → 仅发布通过门禁的卡。新增来源只由人工选择；Skill 不执行 Git 操作。
+蒸馏顺序：人工选源 → 建立材料包和进度 → 本次从头到尾完整审读全部原材料并建立 evidence ledger → 对齐 `DECISION-MAP.md` → 发现候选并语义去重 → 建草稿和 sidecar → 对抗审查与验证 → 仅发布通过门禁的卡。首次蒸馏、重蒸馏、卡片刷新及 Skill/schema/基准变更都必须重新完整审读；旧卡片、草稿、台账、报告或指纹不能替代本次阅读。新增来源只由人工选择；Skill 不执行 Git 操作。
 
 `development-agent-v1` 还必须有 `consumer`、`card_type`、`utility_status`、`decision_scope`、`option_relationship`、一级责任绑定、六项 Development Agent Procedure、六项 evidence 绑定，以及三项已实际审查的公开消费任务。`status: active` 只表示结构/来源门禁通过；`utility_status: validated` 还需要至少三项独立基准任务的无卡/有卡对照。
 

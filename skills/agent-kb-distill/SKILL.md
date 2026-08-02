@@ -21,13 +21,15 @@ Use this Skill only inside an `agent-kb` repository. Read `DECISION-MAP.md`, `SC
 - Do not run Git commands. Git is project workflow, not Skill behavior.
 - Do not publish a card that fails any gate. Retain its draft and evidence sidecar with status `raw-only`, `out-of-scope`, or `rejected`; use `published` for a card that passes all gates. A candidate merged into an existing card still gets a `published` archive record pointing to that card.
 - Never delete a draft or evidence sidecar after a status transition. `drafts/` is a permanent local audit archive and remains Git-ignored.
+- Every distillation run must read and analyze the entire selected source boundary again. This applies to a first distillation, re-distillation, card refresh, Skill/schema change, and benchmark change. Previous cards, drafts, evidence ledgers, reports, and source fingerprints never substitute for the current run's full reading.
+- Inventory every item in the selected material package before reading. Read every readable in-scope item from first to last; record any excluded auxiliary or duplicate format, its reason, and any cross-check performed in the manifest and report.
 
 ## Workflow
 
-1. Read [source intake rules](references/source-intake-rules.md). Register or reuse a `src-NNN`; create `source/`, `derived/`, and `excerpts/`, then create `drafts/<source_id>/` for the source's permanent archive.
-2. Create `derived/manifest.md`, `inventory.md`, and `progress.md` from the templates. Inventory every source unit and assign an extraction reliability rating.
+1. Read [source intake rules](references/source-intake-rules.md). Register or reuse a `src-NNN`; create `source/`, `derived/`, and `excerpts/`, then create `drafts/<source_id>/` for the source's permanent archive. Start a new distillation run record even when the source ID and input fingerprint are unchanged.
+2. Create or revalidate `derived/manifest.md`, `inventory.md`, and `progress.md` from the templates. Inventory every source unit and assign an extraction reliability rating before reading; do not inherit prior completion as proof of current-run reading.
 3. Follow [extraction and locator rules](references/extraction-and-locator-rules.md). Preserve source locations; do not let low-reliability text independently support publication.
-4. Read all inventoried, in-scope units. Write one claim per row in `derived/evidence-ledger.md` using [the ledger schema](references/evidence-ledger-schema.md).
+4. In this run, read all inventoried, in-scope units from first to last. Write or refresh one claim per row in `derived/evidence-ledger.md` using [the ledger schema](references/evidence-ledger-schema.md). Prior ledgers may be used for continuity comparison only, never as the sole evidence of current-run reading.
 5. Align all in-scope claim groups to `DECISION-MAP.md` before discovering candidates. Create `derived/decision-map-alignment.md`; source chapters never determine cards by themselves.
 6. Read applicable tasks in `eval/benchmarks/development-agent/` and identify decisions, required artifacts, and failure risks that current cards do not cover. Treat these tasks as the demand signal; do not invent a candidate only because a chapter has a named concept.
 7. Create `derived/map-change-proposals.md` and `derived/card-review.md`. Claims that cannot fit a Core task need an add/split/merge/exclude proposal; reassess every affected active card as keep, update, split, merge, or deprecate.
@@ -94,7 +96,7 @@ show a documented, non-trivial improvement without a critical regression.
 
 ## Resume
 
-Read `derived/progress.md` before work. Resume from `last_locator`; do not silently replace claim IDs or completed work. Re-run downstream stages only when the recorded source fingerprint changes.
+Read `derived/progress.md` before work. `last_locator` may resume an interrupted read only within the same explicitly identified run; it does not waive the full-material rule for a new run. A new run reads from the first unit through the last even when the source fingerprint is unchanged. Fingerprints identify the input version only; they do not prove that the current run read or analyzed the material. Do not silently replace claim IDs; append the run ID and record claims as confirmed, changed, or withdrawn.
 
 ## Resources
 

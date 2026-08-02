@@ -38,7 +38,7 @@ python scripts/sync_project_skill.py sync
 python scripts/sync_project_skill.py check
 ```
 
-Skill 只在本仓库会话中发现，不安装到用户级目录。人工选择来源；Skill 建立材料画像、证据台账、决策地图对齐、候选和审查档案。只有通过卡片与蒸馏门禁的候选才进入 `cards/`；其他候选保留为 `raw-only`、`out-of-scope` 或 `rejected`。Skill 不执行 Git 操作。
+Skill 只在本仓库会话中发现，不安装到用户级目录。人工选择来源；每次蒸馏都必须从头到尾重新通读并分析选定材料包的全部可读范围，旧卡片、草稿、台账、报告或指纹不能替代本次阅读；这同样适用于重蒸馏、卡片刷新及 Skill/schema/基准变更。Skill 建立材料画像、证据台账、决策地图对齐、候选和审查档案。只有通过卡片与蒸馏门禁的候选才进入 `cards/`；其他候选保留为 `raw-only`、`out-of-scope` 或 `rejected`。Skill 不执行 Git 操作。
 
 ## 本地蒸馏材料
 
