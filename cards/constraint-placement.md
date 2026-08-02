@@ -97,3 +97,4 @@ A、B、C、D 是分层承载位，不是四选一。规则可以用 A/B 解释�
 
 - [src-001] chapter1.md §现代 Agent = LLM + 上下文 + 工具；§Harness 工程：模型之外的竞争力；§工具：Agent 的手脚；§人工干预。
 - [src-001] chapter2.md §动态提示词与 Agent Skills；§Skills 的实现方式与权衡；§KV Cache 友好的上下文设计。
+- [src-001] chapter4.md §工具执行的安全：从输入校验到沙箱隔离；§参数传递的保真性。

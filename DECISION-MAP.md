@@ -8,11 +8,11 @@ status: core
 design_goal: 让 Agent 能够把目标转换为有边界、可停止和可恢复的任务执行。
 required_artifacts: [task-model, execution-loop, stop-condition]
 failure_risks: [unbounded-execution, invalid-plan, lost-task-state]
-child_problems: [workflow-autonomy-architecture, async-task-scheduling]
-coverage_status: no-published-card
-coverage_cards: []
-coverage_raw_only: [workflow-autonomy-architecture, async-task-scheduling]
-coverage_evidence_needed: [hybrid-orchestration-source, polling-or-supervision-source]
+child_problems: [workflow-autonomy-strategy, async-task-scheduling]
+coverage_status: partial
+coverage_cards: [workflow-autonomy-strategy]
+coverage_raw_only: [async-task-scheduling]
+coverage_evidence_needed: [polling-or-supervision-source]
 
 ## context-and-state-architecture
 
@@ -51,10 +51,10 @@ design_goal: 让 Agent 通过可发现、可维护且受限的接口可靠采取
 required_artifacts: [tool-capability-boundary, tool-schema, tool-discovery-policy]
 failure_risks: [tool-call-failure, unsafe-capability-surface, undiscoverable-tool]
 child_problems: [tool-capability-surface]
-coverage_status: no-published-card
-coverage_cards: []
-coverage_raw_only: [tool-capability-surface]
-coverage_evidence_needed: [third-capability-packaging-path-source]
+coverage_status: covered
+coverage_cards: [tool-capability-surface]
+coverage_raw_only: []
+coverage_evidence_needed: []
 
 ## safety-and-human-control-architecture
 

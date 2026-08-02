@@ -8,8 +8,8 @@ decision_scope: continuous-improvement
 option_relationship: layered
 design_task_id: continuous-improvement-and-collaboration-architecture
 design_goal: 让 Agent 在可验证、可回滚的条件下沉淀经验并协调多方工作。
-required_artifact_types: [experience-release-record, rollback-policy]
-failure_risks: [unverified-capability-regression, irreversible-improvement]
+required_artifact_types: [experience-release-record, rollback-policy, coordination-topology]
+failure_risks: [unverified-capability-regression, irreversible-improvement, coordination-error-cascade]
 problem: 如何决定一条 Agent 运行经验进入可检索知识、按需指令、确定性程序或模型参数，并用证据、评估、发布和回滚控制改进风险？
 tags: [continuous-improvement, experience, skills, harness, release, rollback]
 when_to_use: Agent 轨迹中出现可复用成功路径、稳定失败模式或诊断线索，团队准备让后续任务受益时。
@@ -97,3 +97,4 @@ A 到 D 按可执行性和发布风险分层。A 供检索，B 指导模型裁�
 
 - [src-001] chapter8.md §从运行轨迹中获得学习信号；§Agent 持续进化的四种方法 > §将经验沉淀为知识；§将经验写成指令；§将经验写成程序；§将经验写入参数。
 - [src-001] chapter8.md §构建可长期运行的持续进化闭环；§验证、发布与回滚；§可验证闭环的边界：当“完成”不等于“进步”；§持续进化的安全边界。
+- [src-001] chapter8.md §从运行轨迹中获得学习信号；§Harness 更新与模型能力的区分。

@@ -42,10 +42,10 @@
 
 | 章 | 处理状态 | 结果 |
 |----|----------|------|
-| 1 | completed | `constraint-placement` 已覆盖；工作流 / 自主编排因缺少第三条独立路径保留为 raw-only |
-| 2 | completed | `context-loading-strategy` 已覆盖；Skills 为 `tool-capability-surface` 补充证据 |
+| 1 | completed | `constraint-placement` 已覆盖；`workflow-autonomy-strategy` 跨章发布，覆盖工作流 / 自主 / 混合编排 |
+| 2 | completed | `context-loading-strategy` 已覆盖；Skills 和主动发现为 `tool-capability-surface` 提供能力暴露证据 |
 | 3 | completed | 发布 `knowledge-retrieval-strategy` |
-| 4 | completed | 工具能力承载与长时间任务调度均因不足三叉保持 raw-only |
+| 4 | completed | 发布 `tool-capability-surface`；长时间任务调度仍因不足三叉保持 raw-only |
 | 5 | completed | Coding Agent 会话状态与恢复缺少三叉比较，保持 raw-only |
 | 6 | completed | 发布 `agent-evaluation-environment` |
 | 7 | completed | 后训练主要属于模型训练，不纳入当前运行时 Agent 卡片范围 |

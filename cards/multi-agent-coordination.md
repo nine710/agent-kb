@@ -8,8 +8,8 @@ decision_scope: multi-agent-topology
 option_relationship: exclusive
 design_task_id: continuous-improvement-and-collaboration-architecture
 design_goal: 让 Agent 在可验证、可回滚的条件下沉淀经验并协调多方工作。
-required_artifact_types: [coordination-topology]
-failure_risks: [coordination-error-cascade]
+required_artifact_types: [coordination-topology, rollback-policy]
+failure_risks: [coordination-error-cascade, unverified-capability-regression]
 problem: 如何为需要分工的代码 Agent 选择管理者、对等协作或去中心化移交，并把控制权、任务状态、共享工件和失败恢复写成可验证协议？
 tags: [multi-agent, subagents, coordination, topology, handoff, ownership]
 when_to_use: 单 Agent 已不足以完成分工、独立审查、结果汇总或跨专长移交，且必须明确控制权、信息流和工件所有权时。
@@ -42,7 +42,7 @@ Agent 根据能力、任务状态或协议把控制权直接移交给下一位�
 
 ## Apply to Agent Development
 
-- 先证明单 Agent 的能力或可验证性不足，再选择协作拓扑；多 Agent 数量不是架构目标。
+- 先证明单 Agent 的能力或可验证性不足，并确认协作会引入新信息或外部反馈，再选择协作拓扑；多 Agent 数量不是架构目标。
 - 有统一计划、资源约束和最终汇总责任时选 A，并要求管理者验证关键中间结果。
 - 主要价值来自独立审查、相互质疑和迭代改进时选 B，预先规定终止、轮次上限和冲突裁决。
 - 任务会按专长或状态动态流转时选 C，定义所有权、最小移交状态、超时和失败回退。
@@ -57,7 +57,7 @@ Agent 根据能力、任务状态或协议把控制权直接移交给下一位�
 
 ### Decision Inputs
 
-记录是否存在统一计划和最终责任、是否需要独立互审、任务是否动态流转、上下文是否共享、共享工件的并发风险、失败传播范围、终止条件和恢复负责人。
+记录单 Agent 基线、是否引入新信息/外部反馈、是否存在统一计划和最终责任、是否需要独立互审、任务是否动态流转、上下文是否共享、共享工件的并发风险、失败传播范围、预算、终止条件和恢复负责人。
 
 ### Option Relationship
 
@@ -80,6 +80,7 @@ A、B、C 是主控制拓扑的互斥选择：集中管理、对等协商或协�
 - 演练正常完成、执行者失败、管理者错误、对等分歧、移交超时和接收者失败，确认任务不会丢失、重复或无限循环。
 - 对共享文件和消息执行并发冲突测试，确认所有权和版本规则会阻止覆盖。
 - 追踪每次控制权转移和关键中间结果，确认错误不会未经验证级联到下游。
+- 与等量预算的单 Agent 基线比较新增信息、验证收益和通信成本；没有外部反馈时不得用多轮辩论单独证明多 Agent 有益。
 
 ## Anti-Patterns
 
@@ -93,3 +94,4 @@ A、B、C 是主控制拓扑的互斥选择：集中管理、对等协商或协�
 
 - [src-001] chapter10.md §多 Agent 协作的分类框架；§共享上下文的多 Agent 协作；§不共享上下文的多 Agent 协作；§Agent 眼中的文件系统；§Agent 间的通信与控制。
 - [src-001] chapter10.md §对等协作模式：相互制衡与迭代改进；§管理者模式：中心化协调；§去中心化模式：对等移交；§多 Agent 协作的失败模式。
+- [src-001] chapter10.md §多 Agent 的真正价值：引入新信息；§多 Agent 的成本与收益；§多 Agent 协作的失败模式。

@@ -8,9 +8,9 @@ decision_scope: agent-runtime-architecture
 option_relationship: composable-by-information-type
 design_task_id: context-and-state-architecture
 design_goal: 让 Agent 在任务全过程获得正确、足够、可恢复的信息。
-required_artifact_types: [context-layering-table]
-failure_risks: [context-corruption]
-problem: 如何为代码 Agent 的每类信息选择常驻、按需加载、轨迹压缩或外部隔离，并保持上下文预算、缓存稳定性和信息可恢复性？
+required_artifact_types: [context-layering-table, state-model, budget-and-recovery-policy]
+failure_risks: [context-corruption, lost-state, unrecoverable-long-task]
+problem: 如何为代码 Agent 的每类信息选择常驻、按需加载、轨迹压缩或外部隔离，并把动态状态与可恢复边界留在正确位置？
 tags: [context-engineering, prompt-cache, skills, compression, isolation]
 when_to_use: 设计或审查代码 Agent 的 system prompt、项目规则、工具输出、Skill、子 Agent 结果和长期知识如何进入或离开主上下文时。
 when_not: 需要决定完整的跨会话检查点或任务队列状态机时；该卡只决定信息承载方式，不替代长期状态恢复协议。
@@ -61,7 +61,7 @@ source_ids: [src-001]
 
 ### Decision Inputs
 
-建立信息清单，记录每类信息的稳定性、每轮使用频率、增长速度、跨会话要求、预算、时效/冲突风险、精确标识符要求、是否产生 bulk 输出，以及静态前缀是否要求字节稳定。
+建立信息清单，记录每类信息的稳定性、每轮使用频率、增长速度、跨会话要求、预算、时效/冲突风险、精确标识符要求、是否产生 bulk 输出、恢复责任，以及静态前缀是否要求字节稳定。
 
 ### Option Relationship
 
@@ -76,7 +76,7 @@ A、B、C、D 按信息类型组合，不是整个 Agent 的单选题。A 负责
 
 ### Required Artifacts
 
-交付上下文分层表，逐项列出信息类别、承载方式、加载条件、预算、来源/时效和所有者；同时列出静态前缀允许与禁止字段、压缩保留字段，以及子 Agent 或检索层的返回格式。
+交付上下文分层表和状态模型，逐项列出信息类别、承载方式、加载条件、预算、来源/时效和所有者；同时列出静态前缀允许与禁止字段、压缩保留字段、检查点/恢复边界，以及子 Agent 或检索层的返回格式。
 
 ### Verification
 
@@ -84,6 +84,7 @@ A、B、C、D 按信息类型组合，不是整个 Agent 的单选题。A 负责
 - 用长工具输出和大范围仓库探索检查预算，确认 bulk 通过 D 隔离而非永久占据轨迹。
 - 对压缩前后记录断言架构决策、约束理由、失败路径和 hash/UUID/URL 未丢失或改写。
 - 对按需加载和外部返回检查来源定位、时效、冲突状态和返回 schema。
+- 对进程重启检查点和 workspace 状态执行恢复测试，确认已完成变更、当前所有权和下一步条件没有丢失。
 
 ## Anti-Patterns
 
@@ -93,8 +94,10 @@ A、B、C、D 按信息类型组合，不是整个 Agent 的单选题。A 负责
 - 让主 Agent 亲自读取大量文件，再依靠压缩补救 bulk 污染。
 - 压缩时丢失架构决策、失败路径或精确标识符。
 - RAG 或外部返回不保留来源、版本和冲突状态。
+- 把完整任务状态只放在主上下文中，不为重启和恢复保留可读取的状态载体。
 
 ## Sources
 
 - [src-001] chapter2.md §从 API 视角看上下文的构成；§KV Cache 友好的上下文设计；§动态提示词与 Agent Skills；§工具定义的设计；§上下文压缩策略；§隔离优于压缩：子 Agent 上下文隔离。
 - [src-001] chapter3.md §用户记忆系统；§记忆的层次结构；§RAG 基础：构建 Agent 的知识获取管道；§知识库的时效与治理。
+- [src-001] chapter5.md §Sessionless 设计；§故障与错误恢复；§文件系统：Agent 的中央记忆与知识库。
