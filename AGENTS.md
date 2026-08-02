@@ -34,6 +34,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `templates/card.md` | 空白卡片模板 | ✅ |
 | `SCHEMA.md` | 卡片 schema + 对抗审查清单 + 摘录规范 | ✅ |
 | `raw/sources.md` | 必读源索引（源 ID + 章节→问题映射 + raw-only 问题标注） | ✅ |
+| `skills/agent-kb-distill/` | 蒸馏 Skill 的唯一开发源；修改后经脚本同步到 `.agents/skills/` | ✅ |
+| `.agents/skills/agent-kb-distill/` | Codex 项目级技能发现镜像，不直接编辑 | ✅ |
 | `raw/src-NNN-<source-slug>/` | 一个来源的本地材料包：`source/` 放原始材料，`derived/` 放台账/候选/报告，`excerpts/` 放 fair-use 短摘录（单条 ≤500 字、单源 ≤2000 字） | ❌ gitignore |
 | `drafts/<source_id>/` | 永久保留的候选草稿与 evidence sidecar；状态为 `draft` / `published` / `raw-only` / `out-of-scope` / `rejected` | ❌ gitignore |
 | `scripts/validate_card.py` | 卡片 schema 验证脚本（Python 标准库 only） | ✅ |
@@ -55,7 +57,7 @@ raw/
 
 - 一个材料包可以同时含项目、文档、论文、网页存档或配套文件；只要它们共同构成同一个来源，就不得按“项目 / 文档 / 论文”拆到不同目录。
 - `source/` 保持上游材料原样，不能把 Agent 的摘要、推断或改写混入其中；这些工作内容只放在 `derived/`、`excerpts/` 或 `drafts/`。
-- 新增来源由 `.agents/skills/agent-kb-distill/` 自动分配 `src-NNN`、登记许可、建立材料包和生成材料画像；人工只提供或确认来源。
+- 新增来源由 `skills/agent-kb-distill/` 自动分配 `src-NNN`、登记许可、建立材料包和生成材料画像；人工只提供或确认来源。修改 Skill 后先运行 `python scripts/sync_project_skill.py check`，确认无误后再运行 `python scripts/sync_project_skill.py sync`。
 
 ### 蒸馏管线（卡片如何从源材料走到 `cards/`）
 

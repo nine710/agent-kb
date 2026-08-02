@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent KB Distill"
+  short_description: "Distill selected sources into verified agent decision cards."
+  default_prompt: "Use $agent-kb-distill to ingest and distill the selected source into agent-kb decision cards."
