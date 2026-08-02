@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 ## 项目
 
@@ -38,7 +38,11 @@ python scripts/sync_project_skill.py check
 
 蒸馏顺序：人工选源 → 建立材料包和进度 → 本次从头到尾完整审读全部原材料并建立 evidence ledger → 对齐 `DECISION-MAP.md` → 发现候选并语义去重 → 建草稿和 sidecar → 对抗审查与验证 → 仅发布通过门禁的卡。首次蒸馏、重蒸馏、卡片刷新及 Skill/schema/基准变更都必须重新完整审读；旧卡片、草稿、台账、报告或指纹不能替代本次阅读。新增来源只由人工选择；Skill 不执行 Git 操作。
 
+候选问题必须先绑定 `DECISION-MAP.md` 的一级责任，再由跨章节证据和独立基准需求决定；章节标题不能直接变成卡片。三叉证据不足时保留 `raw-only`，不得为了覆盖率补造选项；辅助 PDF/图片只按材料清单记录并交叉核对，不能替代主源证据。
+
 `development-agent-v1` 还必须有 `consumer`、`card_type`、`utility_status`、`decision_scope`、`option_relationship`、一级责任绑定、六项 Development Agent Procedure、六项 evidence 绑定，以及三项已实际审查的公开消费任务。`status: active` 只表示结构/来源门禁通过；`utility_status: validated` 还需要至少三项独立基准任务的无卡/有卡对照。
+
+卡片专属任务只验收 Procedure 是否可执行；独立基准任务不得透露卡片答案，且只有完成基线对照后才能改变 `utility_status`。
 
 ## 常用命令
 
