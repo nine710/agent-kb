@@ -1,6 +1,8 @@
 ---
 id: multi-agent-coordination
 card_contract: development-agent-v1
+card_type: atomic-decision
+utility_status: unverified
 consumer: development-agent
 decision_scope: multi-agent-topology
 option_relationship: exclusive

@@ -1,6 +1,8 @@
 ---
 id: experience-encoding
 card_contract: development-agent-v1
+card_type: atomic-decision
+utility_status: unverified
 consumer: development-agent
 decision_scope: continuous-improvement
 option_relationship: layered

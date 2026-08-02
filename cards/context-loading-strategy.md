@@ -1,6 +1,8 @@
 ---
 id: context-loading-strategy
 card_contract: development-agent-v1
+card_type: composition-strategy
+utility_status: unverified
 consumer: development-agent
 decision_scope: agent-runtime-architecture
 option_relationship: composable-by-information-type

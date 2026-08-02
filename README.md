@@ -16,6 +16,8 @@ AI Agent 设计知识库：策展决策卡（curated decision cards），用于�
 
 详见 `SCHEMA.md`。空白模板见 `templates/card.md`。
 
+`card_type` 区分单一原子决策和可按条件组合的策略；`status: active` 表示结构与来源门禁通过，`utility_status` 单独记录是否通过独立开发任务的效用验证。
+
 ## 任务规模
 
 单文件局部修改、同步、验证、路径或说明修正等小任务直接执行，不写 spec 或 plan。跨文件多阶段、改变行为/契约、需要迁移或难以局部验证的任务，才使用简短 spec/plan。
@@ -23,6 +25,8 @@ AI Agent 设计知识库：策展决策卡（curated decision cards），用于�
 ## 开发 Agent 消费
 
 `development-agent-v1` 卡片是供 Codex、Claude Code 等编程 Agent 在开发 Agent 项目时直接执行的设计参考。它绑定 `DECISION-MAP.md` 中的一级责任，并声明架构交付物和失败风险；除 Options 与 Tradeoffs 外，还包含 Trigger、Decision Inputs、Option Relationship、Selection Rules、Required Artifacts 和 Verification。每张 v1 卡在 `eval/development-agent/` 下有典型、边界和反模式三项公开任务；任务必须由开发 Agent 实际回答并经过 rubric 审查。`decision-card-v0` 是尚未完成该迁移的过渡卡，仍可提供来源可追溯的设计知识，但不宣称可直接执行。
+
+独立任务基准位于 `eval/benchmarks/development-agent/`。它不指定卡片或选项，用于比较无卡片基线与提供卡片后的设计结果；七项典型任务是第一阶段的基准格式试点，扩展到十四项后才适合全面执行每张卡的三任务效用门禁。
 
 ## 蒸馏 Skill
 
@@ -44,6 +48,7 @@ Skill 只在本仓库会话中发现，不安装到用户级目录。人工选�
 
 ```bash
 python scripts/validate_card.py --all   # 验证所有正式卡
+python scripts/validate_benchmark.py eval/benchmarks/development-agent  # 验证独立基准任务
 python scripts/validate_distillation.py raw/<source-package> --drafts drafts --cards cards
 ```
 

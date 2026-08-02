@@ -1,6 +1,8 @@
 ---
 id: knowledge-retrieval-strategy
 card_contract: development-agent-v1
+card_type: atomic-decision
+utility_status: unverified
 consumer: development-agent
 decision_scope: knowledge-retrieval
 option_relationship: composable-by-information-type

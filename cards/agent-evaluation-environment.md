@@ -1,6 +1,8 @@
 ---
 id: agent-evaluation-environment
 card_contract: development-agent-v1
+card_type: atomic-decision
+utility_status: unverified
 consumer: development-agent
 decision_scope: evaluation
 option_relationship: composable

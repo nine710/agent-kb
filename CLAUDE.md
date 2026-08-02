@@ -20,6 +20,7 @@
 ## 目录边界
 
 - `cards/`：公开正式卡；`eval/development-agent/`：v1 卡的典型、边界、反模式验收任务。
+- `eval/benchmarks/development-agent/`：与卡片解耦的独立设计任务基准；不透露卡片答案，用于验证卡片是否改善陌生任务中的设计结果。
 - `DECISION-MAP.md`：一级开发责任；卡片以 `problem` 为主键，源与卡是多对多关系。
 - `raw/sources.md`：公开源索引；`raw/src-NNN-<slug>/`：原材料、派生台账、摘录，保持上游材料不变且不进 Git。
 - `drafts/<source_id>/`：永久本地候选和 evidence sidecar，不进 Git；状态为 `draft`、`published`、`raw-only`、`out-of-scope` 或 `rejected`。
@@ -37,13 +38,14 @@ python scripts/sync_project_skill.py check
 
 蒸馏顺序：人工选源 → 建立材料包和进度 → 完整审读并建立 evidence ledger → 对齐 `DECISION-MAP.md` → 发现候选并语义去重 → 建草稿和 sidecar → 对抗审查与验证 → 仅发布通过门禁的卡。新增来源只由人工选择；Skill 不执行 Git 操作。
 
-`development-agent-v1` 还必须有 `consumer`、`decision_scope`、`option_relationship`、一级责任绑定、六项 Development Agent Procedure、六项 evidence 绑定，以及三项已实际审查的公开消费任务。
+`development-agent-v1` 还必须有 `consumer`、`card_type`、`utility_status`、`decision_scope`、`option_relationship`、一级责任绑定、六项 Development Agent Procedure、六项 evidence 绑定，以及三项已实际审查的公开消费任务。`status: active` 只表示结构/来源门禁通过；`utility_status: validated` 还需要至少三项独立基准任务的无卡/有卡对照。
 
 ## 常用命令
 
 ```bash
 python scripts/validate_card.py cards/<card>.md
 python scripts/validate_card.py --all
+python scripts/validate_benchmark.py eval/benchmarks/development-agent
 python scripts/validate_distillation.py raw/<source-package> --drafts drafts --cards cards
 ```
 

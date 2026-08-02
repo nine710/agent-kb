@@ -16,6 +16,8 @@
 | `status` | string | 是 | `draft`（草稿）/ `active`（正式）/ `deprecated`（废弃） |
 | `source_ids` | string[] | 是 | 关联 `raw/sources.md` 中的源 ID |
 | `card_contract` | string | 是 | `decision-card-v0`（迁移期）或 `development-agent-v1`（开发 Agent 可执行卡） |
+| `card_type` | string | v1 必填 | `atomic-decision`（单一窄决策）或 `composition-strategy`（按条件组合多个机制） |
+| `utility_status` | string | v1 必填 | `unverified`（尚无足够独立任务）、`validated`（通过独立效用门禁）或 `failed`（对照评估未通过） |
 | `consumer` | string | v1 必填 | 固定为 `development-agent` |
 | `decision_scope` | string | v1 必填 | `agent-runtime-architecture` / `knowledge-retrieval` / `evaluation` / `continuous-improvement` / `multi-agent-topology` |
 | `option_relationship` | string | v1 必填 | `exclusive` / `composable` / `layered` / `sequential` / `composable-by-information-type` |
@@ -46,6 +48,8 @@
 
 - `decision-card-v0` 是迁移期卡片：保留有效的设计知识，但尚未声明可直接指导开发 Agent 完成设计交付。
 - `development-agent-v1` 是供 Codex、Claude Code 等编程 Agent 使用的执行型决策卡。它必须具有 consumer 元数据、选项关系和完整的 Development Agent Procedure。
+- `card_type` 区分原子决策和组合策略。原子卡只处理一个窄问题；组合策略卡必须说明按信息类型或风险类型的组合条件，不能把可组合机制伪装为互斥选项。
+- `status: active` 只表示结构和来源门禁通过；`utility_status` 独立表示是否通过不透露答案的开发任务效用验证。现有按卡片组织的三项消费任务不能替代独立效用验证。
 - `option_relationship` 不允许默认省略。它说明同一张卡中的选项是互斥、可组合、分层、顺序执行，或按信息类型组合。
 - `design_task_id` 将卡片绑定到开发 Agent 的一级设计责任；来源章节、论文段落或项目目录不能替代此绑定。
 - `design_goal`、`required_artifact_types` 和 `failure_risks` 让卡片明确其架构交付和不做决策时的独立风险；验证器拒绝与 `DECISION-MAP.md` 不一致的值。

@@ -22,6 +22,8 @@ REQUIRED_SECTIONS = [
     "## Sources",
 ]
 VALID_CARD_CONTRACTS = {"decision-card-v0", "development-agent-v1"}
+VALID_CARD_TYPES = {"atomic-decision", "composition-strategy"}
+VALID_UTILITY_STATUSES = {"unverified", "validated", "failed"}
 VALID_DECISION_SCOPES = {
     "agent-runtime-architecture",
     "knowledge-retrieval",
@@ -259,6 +261,10 @@ def validate(path, decision_map_path=None):
     elif contract not in VALID_CARD_CONTRACTS:
         errors.append(f"invalid card_contract: {contract}")
     elif contract == "development-agent-v1":
+        if fm.get("card_type") not in VALID_CARD_TYPES:
+            errors.append(f"invalid or missing card_type: {fm.get('card_type', '')}")
+        if fm.get("utility_status") not in VALID_UTILITY_STATUSES:
+            errors.append(f"invalid or missing utility_status: {fm.get('utility_status', '')}")
         if fm.get("consumer") != "development-agent":
             errors.append("development-agent-v1 cards require consumer: development-agent")
         if fm.get("decision_scope") not in VALID_DECISION_SCOPES:
