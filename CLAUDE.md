@@ -8,7 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 核心思想：**蒸馏 ≠ 摘要**。蒸馏是把原始材料重构为决策单元（问题 + 选项 + 权衡），而不是压缩原文。这一点贯穿全库，是判断内容是否合格的根基。
 
-设计文档（本地 `planning/`，不入公开仓库）：`planning/agent-kb方案.md`（方案）、`planning/agent-kb计划.md`（v0 实施计划，分 3 个 Phase）。
+复杂任务的设计文档放在本地 `planning/`，不入公开仓库；小任务不创建这些文档。
+
+## 任务规模规则
+
+- 单文件局部修改、同步、验证、路径或说明修正等小任务，直接执行，不写 spec，不写 plan。
+- 只有跨文件多阶段、改变行为或契约、需要迁移，或无法局部验证的任务，才写简短 spec/plan，并在实施前确认。
 
 ## 核心约束（写卡 / 改卡 / 建源前必读，违反即不合格）
 
@@ -105,4 +110,4 @@ python scripts/validate_card.py --all             # 验证所有正式卡
 - 蒸馏时**以源材料的术语和概念为准**；源中未必有 Claude Code 特有术语（如 hooks / constitution），在 `Apply to Agent Development` 中映射到编程智能体术语即可，但每个选项必须有源支撑——书中无支撑的候选**必须替换**，不可凭空编造。
 - Git：本仓库是 git 仓库，远端 `nine710/agent-kb`（Public，SSH remote `git@github.com:nine710/agent-kb.git`），用户已授权自动 commit + push。**推送走 SSH 密钥认证（不经 PAT）+ Clash 代理**（HTTPS/PAT 推送会 403——fine-grained `GITHUB_PAT_TOKEN` 未覆盖此仓库的写权限；SSH 密钥已注册且可用）：`GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand='connect -H 127.0.0.1:7897 %h %p'" git push`。GitHub 直连被墙，git/HTTP 操作走 Clash 代理 `127.0.0.1:7897`（已写入 Claude Code settings.json `env`）。本地 `planning/`（方案/计划）、`CLAUDE.md`、`AGENTS.md`、`.gitignore` 均被 gitignore、**不入公开仓库**；公开仓库只含知识库产出（`cards/` `SCHEMA.md` `templates/` `raw/sources.md` `scripts/` `README.md`）。
 - v0 不做的事：消费侧 design-time skill（用户自行构建）、个人经验入卡（永久不做）。
-- Phase 1（骨架）与 `src-001` 首轮蒸馏**已完成**：`SCHEMA.md`、`scripts/validate_card.py`、`scripts/validate_distillation.py`、`templates/card.md`、`raw/sources.md`、`README.md`、`.gitignore` 和统一蒸馏 Skill 均已就位；`cards/` 含 6 张正式卡，来源包派生档案与候选生命周期档案保留在本地。
+- 当前骨架与 `src-001` 首轮蒸馏已完成；`cards/` 含 6 张正式卡，来源包派生档案与候选生命周期档案仅本地保留。
