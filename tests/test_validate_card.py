@@ -56,6 +56,8 @@ Run the design checks.
         f"design_goal: {design_goal}\n"
         f"required_artifact_types: {required_artifact_types}\n"
         f"failure_risks: {failure_risks}\n"
+        "card_type: atomic-decision\n"
+        "utility_status: unverified\n"
         if contract == "development-agent-v1"
         else ""
     )
@@ -178,7 +180,7 @@ class ValidateCardContractTests(unittest.TestCase):
     def test_context_card_uses_agent_architecture_problem(self):
         root = Path(__file__).resolve().parents[1]
         text = (root / "cards" / "context-loading-strategy.md").read_text(encoding="utf-8")
-        self.assertIn("如何设计 Agent 的上下文架构", text)
+        self.assertIn("problem: 如何为代码 Agent 的每类信息选择常驻、按需加载、轨迹压缩或外部隔离", text)
 
 
 if __name__ == "__main__":

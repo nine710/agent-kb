@@ -9,10 +9,10 @@ design_goal: 让 Agent 能够把目标转换为有边界、可停止和可恢复
 required_artifacts: [task-model, execution-loop, stop-condition]
 failure_risks: [unbounded-execution, invalid-plan, lost-task-state]
 child_problems: [workflow-autonomy-strategy, async-task-scheduling]
-coverage_status: partial
-coverage_cards: [workflow-autonomy-strategy]
-coverage_raw_only: [async-task-scheduling]
-coverage_evidence_needed: [polling-or-supervision-source]
+coverage_status: covered
+coverage_cards: [workflow-autonomy-strategy, durable-task-admission-strategy]
+coverage_raw_only: []
+coverage_evidence_needed: []
 
 ## context-and-state-architecture
 

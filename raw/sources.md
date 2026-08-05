@@ -55,14 +55,27 @@
 
 `src-001` 的完整本地证据台账、决策地图对齐、地图变更提议、既有卡重审、候选队列、进度和蒸馏报告位于 `raw/src-001-ai-agent-book/derived/`，由 `.gitignore` 排除。
 
-### src-002（待补充）
+### src-002：Temporal Documentation 完整仓库快照
 
-公开工程文档（Claude Code / Agent SDK 官方文档等）。在蒸馏卡片时如需补充第 3 真分歧再纳入。
+| 字段 | 值 |
+|------|-----|
+| 组织 | Temporal Technologies |
+| URL | https://github.com/temporalio/documentation |
+| 许可 | MIT License |
+| 格式 | 固定 Git commit 的完整 GitHub repository 快照（文档、示例、实现、测试、工具与配置） |
+| 本地材料包 | `raw/src-002-temporal-documentation/`（gitignored） |
+| 主蒸馏路径 | 人工策展的 `source/docs/` 重要材料清单，见材料包 `derived/selected-materials.md`；完整快照仅作溯源与按需交叉核对 |
+| 工程证据路径 | 完整快照中的 `source/sample-apps/`、`source/src/`、`source/plugins/`、`source/tests/`、`source/fixtures/`、`source/scripts/`、`source/bin/`、`source/.github/`、`source/vale/` 保留作溯源，不构成本 run 的独立蒸馏边界 |
+| 资产与元数据 | `source/static/`、`source/visuals/`、根目录配置与锁文件；二进制/生成文件只作库存和交叉核对，不独立支撑文本结论 |
+| 快照 | `cca0ebdd7d801c8a2f8ac8751d37b2a202a61aa8` |
+| 入选理由 | 作为完整工程参考源，覆盖 Temporal 文档、代码示例、实现、测试、信息架构和维护约束；蒸馏时按开发责任筛选可复用设计决策，不把章节或仓库目录直接当作卡片。 |
+
+该源在固定提交上保留完整 1,565 个跟踪文件。依照人工确认的“只蒸馏重要文件”边界，本 run 的完整阅读边界是 `BND-004` 中列出的 35 篇人类编写文档；1,426 个可读文件和 139 个二进制或生成文件仍保留作库存、溯源和交叉核对，不自动构成卡片证据。逐文件哈希、profile、边界和状态位于 `raw/src-002-temporal-documentation/derived/`，由 `.gitignore` 排除。
 
 ---
 
-## 因单源不够三叉暂不建卡的 problem
+## 已由后续源解除的 raw-only 候选
 
-| problem 候选 | 已有源 | 缺什么 | 状态 |
-|-------------|--------|--------|------|
-| 长时间任务与外部事件的调度架构：事件驱动异步 / 同步请求-响应 / 定时轮询·批处理 / 混合监督 | src-001 chapter4（§事件驱动的异步 Agent 深度展开事件驱动方案 L334–595；§工具生态>MCP 的局限性 以请求-响应式为对照 L124） | ch4 把事件驱动作为既定方案深入工程实现，未把"定时轮询/批处理调度""混合事件+轮询监督"作为可比较的独立设计路径展开。需 ≥1 个外部工程实践源（如运维型 Agent 的轮询/批处理实践、不同调度架构的对比）提供第 3 真分歧 | raw-only |
+| problem 候选 | 新增证据 | 当前状态 |
+|-------------|----------|----------|
+| 长时间任务与外部事件的调度架构：事件驱动异步 / 同步请求-响应 / 时间驱动调度 | src-002 的 BND-004 以 Signals、Updates 和 Schedules 分别提供三种可区分的任务准入机制与操作语义 | 已发布为 `durable-task-admission-strategy` |

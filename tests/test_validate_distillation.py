@@ -24,17 +24,59 @@ def write_package(
     three_way_assessment="pass",
     include_map_archives=True,
     design_task_id="context-and-state-architecture",
+    material_contract_version="",
+    source_id="src-001",
+    candidate_source_ids="",
+    cross_source_review_refs="",
+    cross_source_review="",
 ):
     derived = root / "derived"
     derived.mkdir(parents=True)
-    (derived / "manifest.md").write_text("# Manifest\n\n- source_id: src-001\n", encoding="utf-8")
-    (derived / "inventory.md").write_text("# Inventory\n\n- chapter1.md | high\n", encoding="utf-8")
-    (derived / "progress.md").write_text("# Progress\n\nstage: completed\nlast_locator: chapter1.md\n", encoding="utf-8")
-    (derived / "evidence-ledger.md").write_text(
-        "# Evidence Ledger\n\n"
+    manifest = f"# Manifest\n\n- source_id: {source_id}\n"
+    inventory = "# Inventory\n\n- chapter1.md | high\n"
+    ledger_header = (
         "| claim_id | claim | locator | support_status | reliability | candidate_refs | card_refs | inference_chain |\n"
         "|---|---|---|---|---|---|---|---|\n"
-        f"| CLM-001 | supported claim | chapter1.md#choice | {support_status} | {reliability} | candidate-three-way | option-a | {inference_chain} |\n",
+    )
+    ledger_row = (
+        f"| CLM-001 | supported claim | chapter1.md#choice | {support_status} | {reliability} | "
+        f"candidate-three-way | option-a | {inference_chain} |\n"
+    )
+    if material_contract_version == "v1":
+        manifest += (
+            "- material_contract_version: v1\n"
+            "- material_profile: github-repository\n"
+            "- source_boundary: BND-001, BND-002\n"
+            "- snapshot: 0123456789abcdef0123456789abcdef01234567\n"
+            "- provenance: human-cloned local snapshot\n"
+            "- material_state: upstream-clean\n"
+            "- profile_refs: material-profile-selection.md, material-profile-contracts.md\n"
+            "- input_fingerprint: sha256:fixture\n\n"
+            "## Material Boundary\n\n"
+            "| boundary_id | root | include | exclude | exclusion_reason |\n"
+            "|---|---|---|---|---|\n"
+            "| BND-001 | source/repository | docs/design-patterns/** |  |  |\n"
+            "| BND-002 | source/repository |  | .git/** | version-control metadata is not source content |\n"
+        )
+        inventory = (
+            "# Inventory\n\n"
+            "| unit_id | profile | type | content_role | path_or_url | scope | include | inclusion_reason | locator | snapshot_locator | read_method | extraction_path | quality_check | reliability | status | failure_reason |\n"
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n"
+            "| UNIT-001 | github-repository | markdown | documentation | source/repository/docs/design-patterns/polling.mdx | full file | yes | selected design pattern material | file + heading | path + commit | native-read |  | not-required | high | completed |  |\n"
+        )
+        ledger_header = (
+            "| claim_id | claim | locator | support_status | reliability | candidate_refs | card_refs | inference_chain | content_role | source_position | conflict_status |\n"
+            "|---|---|---|---|---|---|---|---|---|---|---|\n"
+        )
+        ledger_row = (
+            f"| CLM-001 | supported claim | chapter1.md#choice | {support_status} | {reliability} | "
+            f"candidate-three-way | option-a | {inference_chain} | documentation | primary | none |\n"
+        )
+    (derived / "manifest.md").write_text(manifest, encoding="utf-8")
+    (derived / "inventory.md").write_text(inventory, encoding="utf-8")
+    (derived / "progress.md").write_text("# Progress\n\nstage: completed\nlast_locator: chapter1.md\n", encoding="utf-8")
+    (derived / "evidence-ledger.md").write_text(
+        "# Evidence Ledger\n\n" + ledger_header + ledger_row,
         encoding="utf-8",
     )
     (derived / "candidate-problems.md").write_text(
@@ -42,11 +84,27 @@ def write_package(
         f"## {candidate_id}\n\n"
         f"status: {candidate_status}\n\n"
         f"design_task_id: {design_task_id}\n\n"
+        f"source_ids: {candidate_source_ids or f'[{source_id}]'}\n\n"
+        f"cross_source_review_refs: {cross_source_review_refs or '[]'}\n\n"
+        "card_type: atomic-decision\n\n"
+        "benchmark_task_ids: development-agent-001\n\n"
         "claim_refs: CLM-001\n\n"
         f"three_way_assessment: {three_way_assessment}\n",
         encoding="utf-8",
     )
     (derived / "distillation-report.md").write_text("# Distillation Report\n\nstatus: completed\n", encoding="utf-8")
+    if material_contract_version == "v1":
+        (derived / "cross-source-review.md").write_text(
+            cross_source_review
+            or (
+                "# Cross-Source Review\n\n## XSR-001\n\n"
+                f"candidate_id: {candidate_id}\n"
+                "status: no-overlap\n"
+                "claim_refs: CLM-001\n"
+                "resolution_basis: This candidate uses only its archive owner's evidence.\n"
+            ),
+            encoding="utf-8",
+        )
     if include_map_archives:
         write_map_archives(derived)
 
@@ -85,6 +143,9 @@ def write_draft(
     published_card="example",
     decision_reason="",
     filename="example",
+    source_ids="",
+    cross_source_review_refs="",
+    evidence_claim="CLM-001",
 ):
     source_drafts = drafts / source_id
     source_drafts.mkdir(parents=True, exist_ok=True)
@@ -94,12 +155,15 @@ def write_draft(
         "---\n"
         f"id: {filename}\n"
         f"source_id: {source_id}\n"
-        f"source_ids: [{source_id}]\n"
+        f"source_ids: {source_ids or f'[{source_id}]'}\n"
+        f"cross_source_review_refs: {cross_source_review_refs or '[]'}\n"
         f"candidate_id: {candidate_id}\n"
         "design_task_id: context-and-state-architecture\n"
         "design_goal: 让 Agent 在任务全过程获得正确、足够、可恢复的信息。\n"
         "required_artifact_types: [context-layering-table]\n"
         "failure_risks: [context-corruption]\n"
+        "card_type: atomic-decision\n"
+        "utility_status: unverified\n"
         f"status: {status}\n"
         f"{published_line}"
         f"{reason_line}"
@@ -110,7 +174,7 @@ def write_draft(
         "# Evidence Binding\n\n"
         f"source_id: {source_id}\n"
         f"candidate_id: {candidate_id}\n\n"
-        "- Option A: CLM-001\n",
+        f"- Option A: {evidence_claim}\n",
         encoding="utf-8",
     )
 
@@ -127,6 +191,8 @@ def write_v1_card(cards: Path):
         "design_goal: 让 Agent 在任务全过程获得正确、足够、可恢复的信息。\n"
         "required_artifact_types: [context-layering-table]\n"
         "failure_risks: [context-corruption]\n"
+        "card_type: atomic-decision\n"
+        "utility_status: unverified\n"
         "status: active\n"
         "---\n\n"
         "## Development Agent Procedure\n\n"
@@ -243,6 +309,416 @@ class ValidateDistillationTests(unittest.TestCase):
             cards.mkdir()
             write_package(root)
             write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            self.assertEqual([], validator.validate_package(root, drafts, cards))
+
+    def test_legacy_package_remains_valid_without_material_contract(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root)
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            self.assertEqual([], validator.validate_package(root, drafts, cards))
+
+    def test_accepts_complete_v1_material_contract(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, material_contract_version="v1")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            self.assertEqual([], validator.validate_package(root, drafts, cards))
+
+    def test_rejects_v1_manifest_without_reproducible_snapshot(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, material_contract_version="v1")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            manifest = root / "derived" / "manifest.md"
+            manifest.write_text(
+                manifest.read_text(encoding="utf-8").replace(
+                    "- snapshot: 0123456789abcdef0123456789abcdef01234567\n", ""
+                ),
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("v1 manifest missing snapshot" in error for error in errors))
+
+    def test_rejects_v1_boundary_exclusion_without_reason(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, material_contract_version="v1")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            manifest = root / "derived" / "manifest.md"
+            manifest.write_text(
+                manifest.read_text(encoding="utf-8").replace(
+                    "| BND-002 | source/repository |  | .git/** | version-control metadata is not source content |",
+                    "| BND-002 | source/repository |  | .git/** |  |",
+                ),
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("v1 boundary exclusion requires exclusion_reason" in error for error in errors))
+
+    def test_rejects_v1_inventory_with_missing_quality_check(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, material_contract_version="v1")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            inventory = root / "derived" / "inventory.md"
+            inventory.write_text(
+                inventory.read_text(encoding="utf-8").replace(" | not-required | high |", " |  | high |"),
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("v1 included inventory unit missing quality_check" in error for error in errors))
+
+    def test_rejects_v1_ledger_with_invalid_content_role(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, material_contract_version="v1")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            ledger = root / "derived" / "evidence-ledger.md"
+            ledger.write_text(
+                ledger.read_text(encoding="utf-8").replace("| documentation | primary | none |", "| editorial | primary | none |"),
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("v1 claim has invalid content_role" in error for error in errors))
+
+    def test_rejects_published_binding_with_auxiliary_source_position(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, material_contract_version="v1")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            ledger = root / "derived" / "evidence-ledger.md"
+            ledger.write_text(
+                ledger.read_text(encoding="utf-8").replace("| documentation | primary | none |", "| documentation | auxiliary | none |"),
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("published binding uses auxiliary source_position" in error for error in errors))
+
+    def test_rejects_published_binding_with_unresolved_conflict_status(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, material_contract_version="v1")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            ledger = root / "derived" / "evidence-ledger.md"
+            ledger.write_text(
+                ledger.read_text(encoding="utf-8").replace("| documentation | primary | none |", "| documentation | primary | unresolved |"),
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("published binding uses unresolved conflict_status" in error for error in errors))
+
+    def test_rejects_github_repository_with_human_modified_state(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "src-001-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(root, material_contract_version="v1")
+            write_draft(drafts)
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            manifest = root / "derived" / "manifest.md"
+            manifest.write_text(
+                manifest.read_text(encoding="utf-8").replace("material_state: upstream-clean", "material_state: human-modified"),
+                encoding="utf-8",
+            )
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("github-repository material_state must be upstream-clean" in error for error in errors))
+
+    def test_rejects_published_qualified_claim_from_missing_source(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw = Path(temp_dir) / "raw"
+            root = raw / "src-002-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(
+                root,
+                material_contract_version="v1",
+                source_id="src-002",
+                candidate_source_ids="[src-002, src-999]",
+                cross_source_review_refs="[XSR-001]",
+                cross_source_review=(
+                    "# Cross-Source Review\n\n## XSR-001\n\n"
+                    "candidate_id: candidate-three-way\n"
+                    "status: consistent\n"
+                    "claim_refs: src-999/CLM-001\n"
+                    "resolution_basis: The claims support the same fact.\n"
+                ),
+            )
+            write_draft(
+                drafts,
+                source_id="src-002",
+                source_ids="[src-002, src-999]",
+                cross_source_review_refs="[XSR-001]",
+                evidence_claim="src-999/CLM-001",
+            )
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("qualified claim references unknown source" in error for error in errors))
+
+    def test_rejects_published_qualified_claim_without_declared_review_reference(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw = Path(temp_dir) / "raw"
+            root = raw / "src-002-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(raw / "src-001-example", material_contract_version="v1", source_id="src-001")
+            write_package(
+                root,
+                material_contract_version="v1",
+                source_id="src-002",
+                candidate_source_ids="[src-001, src-002]",
+                cross_source_review=(
+                    "# Cross-Source Review\n\n## XSR-001\n\n"
+                    "candidate_id: candidate-three-way\n"
+                    "status: consistent\n"
+                    "claim_refs: src-001/CLM-001, src-002/CLM-001\n"
+                    "resolution_basis: The claims support the same fact.\n"
+                ),
+            )
+            write_draft(
+                drafts,
+                source_id="src-002",
+                source_ids="[src-001, src-002]",
+                evidence_claim="src-001/CLM-001",
+            )
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("cross_source_review_refs" in error for error in errors))
+
+    def test_rejects_published_qualified_claim_with_unresolved_review(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw = Path(temp_dir) / "raw"
+            root = raw / "src-002-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(raw / "src-001-example", material_contract_version="v1", source_id="src-001")
+            write_package(
+                root,
+                material_contract_version="v1",
+                source_id="src-002",
+                candidate_source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                cross_source_review=(
+                    "# Cross-Source Review\n\n## XSR-001\n\n"
+                    "candidate_id: candidate-three-way\n"
+                    "status: unresolved\n"
+                    "claim_refs: src-001/CLM-001, src-002/CLM-001\n"
+                    "resolution_basis: The claims make incompatible recommendations in the same scope.\n"
+                ),
+            )
+            write_draft(
+                drafts,
+                source_id="src-002",
+                source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                evidence_claim="src-001/CLM-001",
+            )
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("unresolved cross-source review" in error for error in errors))
+
+    def test_rejects_distinct_scope_review_without_conditions(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw = Path(temp_dir) / "raw"
+            root = raw / "src-002-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(raw / "src-001-example", material_contract_version="v1", source_id="src-001")
+            write_package(
+                root,
+                material_contract_version="v1",
+                source_id="src-002",
+                candidate_source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                cross_source_review=(
+                    "# Cross-Source Review\n\n## XSR-001\n\n"
+                    "candidate_id: candidate-three-way\n"
+                    "status: distinct-scope\n"
+                    "claim_refs: src-001/CLM-001, src-002/CLM-001\n"
+                    "resolution_basis: The mechanism varies by external interface capability.\n"
+                ),
+            )
+            write_draft(
+                drafts,
+                source_id="src-002",
+                source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                evidence_claim="src-001/CLM-001",
+            )
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("distinct-scope review requires scope_conditions" in error for error in errors))
+
+    def test_rejects_superseded_review_without_superseding_claim(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw = Path(temp_dir) / "raw"
+            root = raw / "src-002-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(raw / "src-001-example", material_contract_version="v1", source_id="src-001")
+            write_package(
+                root,
+                material_contract_version="v1",
+                source_id="src-002",
+                candidate_source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                cross_source_review=(
+                    "# Cross-Source Review\n\n## XSR-001\n\n"
+                    "candidate_id: candidate-three-way\n"
+                    "status: superseded\n"
+                    "claim_refs: src-001/CLM-001, src-002/CLM-001\n"
+                    "resolution_basis: The later snapshot replaces the earlier versioned behavior.\n"
+                ),
+            )
+            write_draft(
+                drafts,
+                source_id="src-002",
+                source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                evidence_claim="src-001/CLM-001",
+            )
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            errors = validator.validate_package(root, drafts, cards)
+            self.assertTrue(any("superseded review requires superseding_claim_ref" in error for error in errors))
+
+    def test_accepts_published_qualified_claim_with_scoped_review(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw = Path(temp_dir) / "raw"
+            root = raw / "src-002-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(raw / "src-001-example", material_contract_version="v1", source_id="src-001")
+            write_package(
+                root,
+                material_contract_version="v1",
+                source_id="src-002",
+                candidate_source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                cross_source_review=(
+                    "# Cross-Source Review\n\n## XSR-001\n\n"
+                    "candidate_id: candidate-three-way\n"
+                    "status: distinct-scope\n"
+                    "claim_refs: src-001/CLM-001, src-002/CLM-001\n"
+                    "scope_conditions: Choose each mechanism only for the interface capability it requires.\n"
+                    "resolution_basis: The mechanisms apply under different observable interface conditions.\n"
+                ),
+            )
+            write_draft(
+                drafts,
+                source_id="src-002",
+                source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                evidence_claim="src-001/CLM-001",
+            )
+            (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
+            self.assertEqual([], validator.validate_package(root, drafts, cards))
+
+    def test_accepts_qualified_claim_in_decision_map_archive(self):
+        validator = load_validator()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            raw = Path(temp_dir) / "raw"
+            root = raw / "src-002-example"
+            drafts = Path(temp_dir) / "drafts"
+            cards = Path(temp_dir) / "cards"
+            drafts.mkdir()
+            cards.mkdir()
+            write_package(raw / "src-001-example", material_contract_version="v1", source_id="src-001")
+            write_package(
+                root,
+                material_contract_version="v1",
+                source_id="src-002",
+                candidate_source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                cross_source_review=(
+                    "# Cross-Source Review\n\n## XSR-001\n\n"
+                    "candidate_id: candidate-three-way\n"
+                    "status: consistent\n"
+                    "claim_refs: src-001/CLM-001, src-002/CLM-001\n"
+                    "resolution_basis: The claims support the same fact.\n"
+                ),
+            )
+            alignment = root / "derived" / "decision-map-alignment.md"
+            alignment.write_text(
+                alignment.read_text(encoding="utf-8").replace("claim_refs: CLM-001", "claim_refs: src-001/CLM-001"),
+                encoding="utf-8",
+            )
+            write_draft(
+                drafts,
+                source_id="src-002",
+                source_ids="[src-001, src-002]",
+                cross_source_review_refs="[XSR-001]",
+                evidence_claim="src-001/CLM-001",
+            )
             (cards / "example.md").write_text("---\nid: example\nstatus: active\n---\n", encoding="utf-8")
             self.assertEqual([], validator.validate_package(root, drafts, cards))
 

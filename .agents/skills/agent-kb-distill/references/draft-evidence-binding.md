@@ -25,8 +25,11 @@ The sidecar maps each Option, Tradeoff row, application rule, and Anti-Pattern t
 
 - source_id: src-NNN
 - candidate_id: CAND-NNN
+- source_ids: [src-NNN]
+- cross_source_review_refs: []
 
 - Option A: CLM-001, CLM-004
+- Option B: src-002/CLM-017
 - Tradeoff A advantage: CLM-004
 - Tradeoff A cost: CLM-006
 - Apply rule 1: CLM-007
@@ -53,3 +56,8 @@ For a published v1 candidate, bind the chosen design task, copied design goal,
 required artifact types, and failure risks in the draft frontmatter. The
 sidecar continues to bind the Procedure to source claims; map alignment and
 proposal evidence remain in `derived/`, not in public cards.
+
+An external claim uses `src-NNN/CLM-NNN` and must name that source in the
+draft's `source_ids`. The candidate's `cross_source_review_refs` must point to
+records in `derived/cross-source-review.md`; the validator resolves the source
+package and claim before a published binding is accepted.

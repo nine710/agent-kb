@@ -16,6 +16,10 @@ Each candidate section uses a stable ID and includes:
 - `card_type`: required for `development-agent-v1`; `atomic-decision` or `composition-strategy`.
 - `benchmark_task_ids`: independent benchmark tasks that expose or exercise this decision; card-specific tasks do not count as utility evidence.
 - `claim_refs`: evidence ledger claim IDs.
+- `source_ids`: all source IDs whose claims are used by this candidate; include
+  the archive owner and every external source.
+- `cross_source_review_refs`: `XSR-NNN` records required when `source_ids`
+  contains an external source.
 - `three_way_assessment`: `pass` only when three mechanisms, layers, or topologies are genuinely distinct.
 - `options`: the three or more paths and their supporting claim IDs.
 - `agent_relevance`: direct benefit to programming Agent design.

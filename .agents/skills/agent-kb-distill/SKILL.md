@@ -23,27 +23,29 @@ Use this Skill only inside an `agent-kb` repository. Read `DECISION-MAP.md`, `SC
 - Never delete a draft or evidence sidecar after a status transition. `drafts/` is a permanent local audit archive and remains Git-ignored.
 - Every distillation run must read and analyze the entire selected source boundary again. This applies to a first distillation, re-distillation, card refresh, Skill/schema change, and benchmark change. Previous cards, drafts, evidence ledgers, reports, and source fingerprints never substitute for the current run's full reading.
 - Inventory every item in the selected material package before reading. Read every readable in-scope item from first to last; record any excluded auxiliary or duplicate format, its reason, and any cross-check performed in the manifest and report.
+- A human-provided local repository clone is immutable upstream material. Do not run Git commands, fetch, pull, change branches, or modify it. Only the manifest-declared included paths at the human-provided commit are the complete-reading boundary.
 
 ## Workflow
 
-1. Read [source intake rules](references/source-intake-rules.md). Register or reuse a `src-NNN`; create `source/`, `derived/`, and `excerpts/`, then create `drafts/<source_id>/` for the source's permanent archive. Start a new distillation run record even when the source ID and input fingerprint are unchanged.
-2. Create or revalidate `derived/manifest.md`, `inventory.md`, and `progress.md` from the templates. Inventory every source unit and assign an extraction reliability rating before reading; do not inherit prior completion as proof of current-run reading.
+1. Read [source intake rules](references/source-intake-rules.md) and [material profile selection](references/material-profile-selection.md). For every new or re-distilled package, select the primary profile, declare the v1 material contract and finite `Material Boundary`, then register or reuse a `src-NNN`; create `source/`, `derived/`, and `excerpts/`, then create `drafts/<source_id>/` for the source's permanent archive. Start a new distillation run record even when the source ID and input fingerprint are unchanged.
+2. Read [material profile contracts](references/material-profile-contracts.md) for every selected profile. Create or revalidate `derived/manifest.md`, `inventory.md`, and `progress.md` from the templates. Inventory every included, excluded, and unreadable source unit; record profile, content role, version-aware locator, read method, quality check, and extraction reliability before reading. Do not inherit prior completion as proof of current-run reading.
 3. Follow [extraction and locator rules](references/extraction-and-locator-rules.md). Preserve source locations; do not let low-reliability text independently support publication.
-4. In this run, read all inventoried, in-scope units from first to last. Write or refresh one claim per row in `derived/evidence-ledger.md` using [the ledger schema](references/evidence-ledger-schema.md). Prior ledgers may be used for continuity comparison only, never as the sole evidence of current-run reading.
+4. In this run, read all inventoried, in-scope units from first to last. Write or refresh one claim per row in `derived/evidence-ledger.md` using [the ledger schema](references/evidence-ledger-schema.md), including content role, source position, and conflict status. Prior ledgers may be used for continuity comparison only, never as the sole evidence of current-run reading.
 5. Align all in-scope claim groups to `DECISION-MAP.md` before discovering candidates. Create `derived/decision-map-alignment.md`; source chapters never determine cards by themselves.
 6. Read applicable tasks in `eval/benchmarks/development-agent/` and identify decisions, required artifacts, and failure risks that current cards do not cover. Treat these tasks as the demand signal; do not invent a candidate only because a chapter has a named concept.
 7. Create `derived/map-change-proposals.md` and `derived/card-review.md`. Claims that cannot fit a Core task need an add/split/merge/exclude proposal; reassess every affected active card as keep, update, split, merge, or deprecate.
 8. Create `derived/candidate-problems.md` using [the candidate schema](references/candidate-problem-schema.md). Every candidate identifies its Core design task or an explicit emerging/excluded mapping reason, its `card_type` (`atomic-decision` or `composition-strategy`), and applicable independent benchmark task IDs. Compare every candidate against existing cards semantically.
-9. For every candidate, create `drafts/<source_id>/<candidate-id>-<slug>.md` and its matching `.evidence.md` sidecar using [draft binding rules](references/draft-evidence-binding.md). Set the lifecycle status to `draft` while analysis is incomplete; use `raw-only`, `out-of-scope`, or `rejected` with a decision reason when a candidate is withheld.
-10. For a candidate targeting `development-agent-v1`, perform the Development-Agent adaptation stage: define consumer, card type, decision scope, option relationship, design-task binding, all six Procedure fields, and evidence bindings. Create one public `typical`, `boundary`, and `anti-pattern` evaluation task under `eval/development-agent/<card-id>/`. A reviewer must record a real development-Agent answer against every task rubric before `review_status: pass` is valid; these tasks do not prove independent utility.
-11. Apply [publication gates](references/publication-gates.md). Only a `published` draft may produce or update a file in `cards/`; set its `published_card` link after the active card exists. A published v1 card starts with `utility_status: unverified` unless at least three applicable independent benchmark tasks have a recorded baseline-versus-card comparison. Run both validation commands before treating the source as complete:
+9. After semantic deduplication and before drafting, create or refresh `derived/cross-source-review.md` from [cross-source conflict rules](references/cross-source-conflict-rules.md). Compare normalized claims against affected sources and cards. Classify each relationship as consistent, distinct-scope, superseded, unresolved, or no-overlap. A design disagreement with different applicability conditions becomes conditioned options; an unresolved same-scope factual disagreement withholds the affected candidate or field.
+10. For every candidate, create `drafts/<source_id>/<candidate-id>-<slug>.md` and its matching `.evidence.md` sidecar using [draft binding rules](references/draft-evidence-binding.md). Set `source_ids` and `cross_source_review_refs` when external claims are used. Bind external claims as `src-NNN/CLM-NNN`; never use an unqualified claim ID for another source.
+11. For a candidate targeting `development-agent-v1`, perform the Development-Agent adaptation stage: define consumer, card type, decision scope, option relationship, design-task binding, all six Procedure fields, and evidence bindings. Create one public `typical`, `boundary`, and `anti-pattern` evaluation task under `eval/development-agent/<card-id>/`. A reviewer must record a real development-Agent answer against every task rubric before `review_status: pass` is valid; these tasks do not prove independent utility.
+12. Apply [publication gates](references/publication-gates.md). Only a `published` draft may produce or update a file in `cards/`; set its `published_card` link after the active card exists. A published v1 card starts with `utility_status: unverified` unless at least three applicable independent benchmark tasks have a recorded baseline-versus-card comparison. Run both validation commands before treating the source as complete:
 
    ```text
    python scripts/validate_distillation.py <source-package> --drafts drafts --cards cards
    python scripts/validate_card.py --all
    ```
 
-12. Write `derived/distillation-report.md`. Include decision-map coverage and changes, benchmark task gaps, existing-card review decisions, published cards, consumer contract/readiness, utility status, all withheld candidates, archive paths, conflicts, reliability issues, and source suggestions.
+13. Write `derived/distillation-report.md`. Include decision-map coverage and changes, benchmark task gaps, existing-card review decisions, published cards, consumer contract/readiness, utility status, all withheld candidates, cross-source review decisions and unresolved relationships, archive paths, conflicts, reliability issues, and source suggestions.
 
 ## Archive lifecycle
 
@@ -101,8 +103,11 @@ Read `derived/progress.md` before work. `last_locator` may resume an interrupted
 ## Resources
 
 - [Source intake](references/source-intake-rules.md)
+- [Material profile selection](references/material-profile-selection.md)
+- [Material profile contracts](references/material-profile-contracts.md)
 - [Extraction and locators](references/extraction-and-locator-rules.md)
 - [Evidence ledger](references/evidence-ledger-schema.md)
 - [Candidate problems](references/candidate-problem-schema.md)
 - [Draft evidence binding](references/draft-evidence-binding.md)
+- [Cross-source conflict rules](references/cross-source-conflict-rules.md)
 - [Publication gates](references/publication-gates.md)
